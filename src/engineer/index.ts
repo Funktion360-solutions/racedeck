@@ -18,6 +18,7 @@ export interface EngineerLimits extends TyreLimits {
 
 /** AI settings: which voice, and the optional local AI brain (Ollama). */
 export interface AiSettings {
+  wakeWord: boolean;
   voice: VoiceEngine;
   /** RaceDeck's shared voice on the server: "a" or "b". */
   voiceVariant: 'a' | 'b';
@@ -27,7 +28,7 @@ export interface AiSettings {
   ollama: OllamaSettings;
 }
 
-export const defaultAi: AiSettings = { voice: cloudVoice ? 'ai' : 'device', voiceVariant: 'a', elevenVoiceId: '', elevenVoiceName: '', ollama: defaultOllama };
+export const defaultAi: AiSettings = { voice: cloudVoice ? 'ai' : 'device', voiceVariant: 'a', wakeWord: false, elevenVoiceId: '', elevenVoiceName: '', ollama: defaultOllama };
 
 const r1 = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? null : Math.round(v * 10) / 10);
 
@@ -182,6 +183,10 @@ class RaceEngineer {
   set onSpeak(fn: ((text: string) => void) | null) {
     voice.onSpeak = fn;
   }
+
+  acknowledge() { if (this.active && this.settings.enabled) voice.test('Ja?'); }
+
+  onBusyChange(fn: (busy: boolean) => void) { return voice.onBusyChange(fn); }
 
   /** For the pit widget. */
   pitOptions() {

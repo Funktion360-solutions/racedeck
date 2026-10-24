@@ -9,18 +9,20 @@ import { isExpoGo } from '../telemetry/udp';
  * is not part of Expo Go – there the quick-question buttons are used instead.
  */
 
-interface Subscription {
+export interface Subscription {
   remove(): void;
 }
 
-interface Recognizer {
+export interface Recognizer {
   requestPermissionsAsync(): Promise<{ granted: boolean }>;
   start(options: object): void;
   stop(): void;
+  supportsOnDeviceRecognition?(): boolean;
+  abort?(): void;
   addListener(event: string, listener: (ev: { results?: { transcript?: string }[]; isFinal?: boolean; error?: string }) => void): Subscription;
 }
 
-function load(): Recognizer | null {
+export function load(): Recognizer | null {
   if (isExpoGo) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports

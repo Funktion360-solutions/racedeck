@@ -17,6 +17,7 @@ export interface PitFrame {
 }
 
 export interface PitStats {
+  fuelEstimated?: boolean;
   fuelPerLap: number | null; // % per lap
   fuelLapsLeft: number | null;
 }
@@ -62,6 +63,12 @@ function fuelPhrase(addPercent: number | null, addLitres: number | null): string
 }
 
 export function pitPlan(f: PitFrame, s: PitStats, o: PitOptions): PitPlan {
+  const plan = calculatePitPlan(f, s, o);
+  if (!s.fuelEstimated || plan.reason === 'tyres') return plan;
+  return { ...plan, text: `Foreløbigt brændstofskøn: ${plan.text}`, detail: `Estimat · ${plan.detail}` };
+}
+
+function calculatePitPlan(f: PitFrame, s: PitStats, o: PitOptions): PitPlan {
   const base: PitPlan = { status: 'unknown', boxLap: null, lapsUntil: null, reason: null, addPercent: null, addLitres: null, saveRate: null, shortLaps: null, text: '', headline: '—', detail: '' };
   const lap = Math.max(1, f.lap);
   const hasRaceLength = f.totalLaps > 0;

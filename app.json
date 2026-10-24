@@ -40,7 +40,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "RaceDeck bruger kun mikrofonen, når du stiller løbsingeniøren et spørgsmål.",
+          "microphonePermission": "RaceDeck bruger mikrofonen, når du stiller et spørgsmål eller slår håndfri aktivering med navnet Mads til under kørsel.",
           "recordAudioAndroid": true,
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
@@ -49,7 +49,7 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "RaceDeck bruger mikrofonen, når du stiller løbsingeniøren et spørgsmål.",
+          "microphonePermission": "RaceDeck bruger mikrofonen, når du stiller et spørgsmål eller slår håndfri aktivering med navnet Mads til under kørsel.",
           "speechRecognitionPermission": "RaceDeck laver dit spørgsmål om til tekst, så løbsingeniøren kan svare.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox"

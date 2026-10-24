@@ -1,12 +1,17 @@
 // RaceDeck
 // Copyright © 2026 Magnus Slot. Alle rettigheder forbeholdes.
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 import { DemoDriver } from './demo';
 import { Flag, Frame, emptyFrame, has } from './frame';
 import { RaceTracker, Stats, emptyStats } from './tracker';
+import { MAX_TRACKS, SavedTrack, addTrack, isSavedTrack } from './tracks';
 import { GT7Client } from './udp';
+
 import { engineer } from '../engineer';
+
+const TRACKS_KEY = 'racedeck.tracks.v1';
 
 export type Source = 'demo' | 'ps5';
 export type ConnectionState = 'stopped' | 'waiting' | 'live' | 'paused' | 'demo' | 'failed';
@@ -50,6 +55,43 @@ class TelemetryHub {
   private lastPacket = 0;
   private dirty = false;
 
+  private trackRevision = 0;
+  private trackWrite: Promise<void> = Promise.resolve();
+
+  constructor() {
+    const revision = this.trackRevision;
+    // Remember every track that has been drawn, so its map appears at once next time.
+    AsyncStorage.getItem(TRACKS_KEY)
+      .then((raw) => {
+        const list = raw ? JSON.parse(raw) : [];
+        if (revision === this.trackRevision && Array.isArray(list)) this.tracker.library = list.filter(isSavedTrack).slice(0, MAX_TRACKS);
+      })
+      .catch(() => {});
+    this.tracker.onTrackDrawn = (outline) => {
+      if (this.source !== 'ps5') return; // don't save the demo track
+      const next = addTrack(this.tracker.library, outline);
+      if (next === this.tracker.library) return;
+      this.saveTracks(next);
+    };
+  }
+
+  private saveTracks(list: SavedTrack[]) {
+    this.trackRevision++;
+    this.tracker.library = list;
+    this.trackWrite = this.trackWrite.then(() => AsyncStorage.setItem(TRACKS_KEY, JSON.stringify(list))).catch(() => {});
+  }
+
+  /** Number of saved track maps (settings screen). */
+  get savedTracks() {
+    return this.tracker.library.length;
+  }
+
+  /** Forgets all saved track maps. */
+  forgetTracks() {
+    this.saveTracks([]);
+    this.resetSession();
+  }
+
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
     return () => {
@@ -63,6 +105,7 @@ class TelemetryHub {
     this.stop();
     this.source = source;
     this.error = null;
+    this.tracker.recognizeTracks = source === 'ps5';
     this.tracker.reset();
     engineer.reset();
     this.latest = emptyFrame();

@@ -12,6 +12,7 @@ import { engineer } from '../engineer';
 import type { Chattiness, EngineerSettings } from '../engineer/brain';
 import { VoiceInfo, findDanishVoice } from '../engineer/voice';
 import { ElevenVoice, getApiKey, listVoices, setApiKey } from '../engineer/eleven';
+import { canListen } from '../engineer/listen';
 import { ListButton, Note, Row, Section, Segmented, Sheet, Stepper, Toggle } from './Sheet';
 import { ACCENTS, ACCENT_NAMES, C, tyreColor } from './theme';
 
@@ -285,13 +286,17 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
           <Toggle label="Løbet (to omgange tilbage, sidste omgang)" value={eng.race} onChange={(race) => setEng({ race })} accent={accent} />
           <Stepper label="Talehastighed" value={Math.round(eng.rate * 10)} min={7} max={13} onChange={(v) => setEng({ rate: v / 10 })} format={(v) => `${(v / 10).toFixed(1).replace('.', ',')}×`} />
           <ListButton icon="▶" label="Test stemme" onPress={() => engineer.test()} accent={accent} />
+          <Toggle label="Sig &quot;Mads&quot; for at spørge (ingen knap)" value={ai.wakeWord} onChange={(wakeWord) => setAi({ wakeWord })} accent={accent} />
+          <Note>{canListen()
+            ? 'Løbsingeniøren hedder Mads. Når Kør er åben, lytter telefonen efter hans navn: sig fx "Mads, hvornår skal jeg i pit?" eller bare "Mads" – så svarer han "Ja?" og lytter. Han holder pause med at lytte, mens han selv taler. Funktionen bruger lokal talegenkendelse og virker kun, mens RaceDeck er åben. Den er slået fra som standard og bruger mere strøm, når den er aktiv.'
+            : 'At sige "Mads" kræver den rigtige app fra TestFlight (virker ikke i Expo Go).'}</Note>
         </>
       ) : null}
       <Note>
         {danishVoice === undefined
           ? 'Leder efter en dansk stemme …'
           : danishVoice
-            ? `Stemme: ${danishVoice.name}${danishVoice.enhanced ? ' (forbedret)' : ''}. Løbsingeniøren taler kun, når Kør er åben, og kan slås fra med 🔊 øverst.`
+            ? `Stemme: ${danishVoice.name}${danishVoice.enhanced ? ' (forbedret)' : ''}. Løbsingeniøren taler, når Kør er åben og kan slås fra med 🔊 øverst.`
             : 'Der er ingen dansk stemme på telefonen. iPhone: Indstillinger → Tilgængelighed → Oplæst indhold → Stemmer → Dansk. Android: Indstillinger → Tekst-til-tale → installér dansk.'}
       </Note>
       <Note>Tip: Vælg en "forbedret" eller "premium" dansk stemme på telefonen – den lyder meget mere naturlig.</Note>
@@ -438,6 +443,10 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
       <Toggle label="Hold skærmen tændt under kørsel" value={settings.keepScreenOn} onChange={(keepScreenOn) => updateSettings({ keepScreenOn })} accent={accent} />
       <Toggle label="Blinkende skiftelys ved omdrejningsgrænsen" value={settings.shiftFlash} onChange={(shiftFlash) => updateSettings({ shiftFlash })} accent={accent} />
 
+      <Section>Banekort</Section>
+      {visible ? <TrackLibraryButton accent={accent} /> : null}
+      <Note>GT7 sender ikke, hvilken bane du kører på, så RaceDeck genkender den ud fra, hvor bilen kører. 84 banelayouts er indbygget. Kortet vises, når nok af din kørsel passer til en kendt bane. Baner med fælles sving kan tage længere tid at skelne. Baner, appen ikke kender (fx nye baner fra en GT7-opdatering), tegnes første gang og gemmes, så de også kommer med det samme næste gang.</Note>
+
       <Section>Dæktemperatur</Section>
       <Stepper label="Kold (blå) under" dot="#4fa8ff" value={settings.tyreCold} min={20} max={settings.tyreWarm - 10} onChange={(tyreCold) => updateSettings({ tyreCold })} format={(v) => `${v} °C`} />
       <Stepper label="Optimal (grøn) til" dot="#6be07a" value={settings.tyreWarm} min={settings.tyreCold + 10} max={settings.tyreHot - 5} onChange={(tyreWarm) => updateSettings({ tyreWarm })} format={(v) => `${v} °C`} />
@@ -449,7 +458,7 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
       <Note>Farven glider fra blå over grøn og gul til rød. Standarden følger spillernes målinger i GT7, hvor racerdæk slides markant hurtigere fra ca. 88–93 °C.</Note>
 
       <Section>Session</Section>
-      <ListButton icon="↺" label={confirmReset ? 'Tryk igen for at nulstille' : 'Nulstil session'} detail="Sletter omgangstider, brændstofforbrug, delta, topfart, distance og banekort."
+      <ListButton icon="↺" label={confirmReset ? 'Tryk igen for at nulstille' : 'Nulstil session'} detail="Sletter omgangstider, brændstofforbrug, delta, topfart og distance. Gemte banekort beholdes."
         onPress={() => { if (confirmReset) { hub.resetSession(); setConfirmReset(false); } else setConfirmReset(true); }} accent={accent} />
 
       <Section>Om RaceDeck</Section>
@@ -487,5 +496,19 @@ export function WelcomeSheet({ visible, onClose }: { visible: boolean; onClose: 
       </View>
       <Note style={{ marginTop: 10 }}>Indtil du forbinder, kører appen med demodata.</Note>
     </Sheet>
+  );
+}
+
+function TrackLibraryButton({ accent }: { accent: string }) {
+  const [confirm, setConfirm] = useState(false);
+  const [count, setCount] = useState(hub.savedTracks);
+  useEffect(() => {
+    const t = setInterval(() => setCount(hub.savedTracks), 2000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <ListButton icon="🗺" danger={confirm} label={confirm ? 'Tryk igen for at glemme dine tegnede baner' : 'Glem tegnede baner'}
+      detail={`84 indbyggede GT7-baner${count === 0 ? '' : count === 1 ? ' + 1 tegnet af dig' : ` + ${count} tegnet af dig`}.`}
+      onPress={() => { if (confirm) { hub.forgetTracks(); setCount(0); setConfirm(false); } else setConfirm(true); }} accent={accent} />
   );
 }

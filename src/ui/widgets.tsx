@@ -200,12 +200,20 @@ function Pedals({ t, accent }: WidgetProps) {
   );
 }
 
+/** "12,4", "≈12,4" (estimate before a whole lap), "∞" (no fuel use in this race), "…" (measuring). */
+function fuelLapsText(st: Snapshot['stats']): string {
+  if (st.fuelUnchanged) return '…';
+  if (st.fuelLapsLeft == null) return '…';
+  return (st.fuelEstimated ? '≈' : '') + fmt.decimal(st.fuelLapsLeft);
+}
+
 function Fuel({ t, accent, w, h }: WidgetProps) {
   const fuel = fuelPercent(t.frame);
   const st = t.stats;
   const low = st.fuelLapsLeft != null ? st.fuelLapsLeft < 1.5 : fuel < 10;
   const roomy = w > 260 && h > 70;
   const barH = Math.max(24, h * (roomy ? 0.45 : 0.5));
+  const lapsLeft = fuelLapsText(st);
   const figure = (value: string, label: string) => (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 5 }}>
       <Num size={20}>{value}</Num>
@@ -222,12 +230,12 @@ function Fuel({ t, accent, w, h }: WidgetProps) {
         {roomy ? (
           <>
             <Cap>⛽</Cap>
-            {figure(fmt.decimal(st.fuelPerLap), 'pr. omg.')}
-            {figure(fmt.decimal(st.fuelLapsLeft), 'omg. tilbage')}
+            {figure(st.fuelUnchanged ? '…' : fmt.decimal(st.fuelPerLap), 'pr. omg.')}
+            {figure(lapsLeft, 'omg. tilbage')}
             {figure(fmt.duration(st.fuelTimeLeft), 'tid tilbage')}
           </>
         ) : (
-          figure(fmt.decimal(st.fuelLapsLeft), 'omg. tilbage')
+          figure(lapsLeft, 'omg. tilbage')
         )}
       </View>
     </View>
@@ -246,8 +254,8 @@ function FuelCompact({ t, accent, w, h }: WidgetProps) {
       h={h}
       items={[
         [litres != null ? fmt.decimal(litres, 0) : fmt.decimal(fuelPercent(f), 0), litres != null ? 'Liter' : '%', C.text],
-        [fmt.decimal(perLap, 2), 'Pr. omg.', C.text],
-        [fmt.decimal(st.fuelLapsLeft), 'Omg. tilbage', low ? C.ledRed : accent],
+        [st.fuelUnchanged ? '…' : fmt.decimal(perLap, 2), 'Pr. omg.', C.text],
+        [fuelLapsText(st), 'Omg. tilbage', low ? C.ledRed : accent],
       ]}
     />
   );
@@ -343,6 +351,7 @@ function Delta({ t, w, h }: WidgetProps) {
     <View style={{ flex: 1, gap: 6 }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Num size={Math.min(h * 0.6, w * 0.26)} weight={800} color={color}>{fmt.delta(d)}</Num>
+        {d == null ? <Cap>{t.stats.lapTimes.length ? 'Måler omgangen …' : 'Klar efter 1. hele omgang'}</Cap> : null}
       </View>
       <View style={{ height: 6, borderRadius: 3, backgroundColor: alpha(C.border, 0.6), overflow: 'hidden' }}>
         <View style={{ position: 'absolute', top: 0, bottom: 0, left: (`${(d ?? 0) <= 0 ? 50 - amount : 50}%` as `${number}%`), width: (`${amount}%` as `${number}%`), backgroundColor: color }} />
@@ -397,7 +406,7 @@ function TrackMap({ t, accent }: WidgetProps) {
   if (pts.length <= 5) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: C.muted, fontSize: 12, textAlign: 'center' }}>Kør en omgang, så tegner RaceDeck banen.</Text>
+        <Text style={{ color: C.muted, fontSize: 12, textAlign: 'center' }}>Kør ud på banen, så forsøger RaceDeck at genkende kortet.</Text>
       </View>
     );
   }
@@ -416,7 +425,8 @@ function TrackMap({ t, accent }: WidgetProps) {
         {car ? <Circle cx={car[0]} cy={car[1]} r={size / 40} fill={accent} fillOpacity={0.3} /> : null}
         {car ? <Circle cx={car[0]} cy={car[1]} r={size / 70} fill={accent} /> : null}
       </Svg>
-      {!t.stats.outlineComplete ? <Cap style={{ position: 'absolute', left: 0, bottom: 0 }}>Tegner banen …</Cap> : null}
+      {!t.stats.outlineComplete ? <Cap style={{ position: 'absolute', left: 0, bottom: 0 }}>Finder banen …</Cap> : null}
+      {t.stats.trackName ? <Cap style={{ position: 'absolute', left: 0, top: 0, right: 0 }}>{t.stats.trackName}</Cap> : null}
     </View>
   );
 }

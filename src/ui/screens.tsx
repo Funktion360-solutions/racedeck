@@ -3,11 +3,12 @@
 
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import React, { useEffect, useRef, useState } from 'react';
-import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { AppState, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { engineer } from '../engineer';
 import { QUICK_QUESTIONS } from '../engineer/answers';
 import { canListen, listenOnce, stopListening } from '../engineer/listen';
+import { WakeListener } from '../engineer/wake';
 import { DashWidget } from '../model/layouts';
 import { useStore } from '../model/store';
 import { stateLabel, useTelemetry } from '../telemetry/hub';
@@ -147,21 +148,63 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
       .catch(() => showCaption({ you: question, engineer: 'Det gik galt. Prøv igen.' }));
   };
 
+  // Hands-free: say "Mads, …" – no need to press the mic.
+  const wake = useRef<WakeListener | null>(null);
+  const pressing = useRef(false);
+  const talking = useRef(false);
+  const [wakeListening, setWakeListening] = useState(false);
+  const [wakeHeard, setWakeHeard] = useState<string | null>(null);
+  const askRef = useRef(ask);
+  askRef.current = ask;
+  const [foreground, setForeground] = useState(AppState.currentState === 'active');
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => setForeground(state === 'active'));
+    return () => sub.remove();
+  }, []);
+  const wakeOn = store.settings.ai.wakeWord && store.settings.engineer.enabled && micAvailable && foreground;
+  useEffect(() => {
+    if (!wakeOn) return;
+    const w = new WakeListener({
+      onListeningChange: setWakeListening,
+      onCalled: () => engineer.acknowledge(),
+      onQuestion: (q) => askRef.current?.(q),
+      onHearing: setWakeHeard,
+      onError: (message) => showCaption({ engineer: message }),
+    });
+    wake.current = w;
+    const off = engineer.onBusyChange((busy) => { talking.current = busy; w.pause(busy || pressing.current); });
+    w.pause(talking.current || pressing.current);
+    void w.start();
+    return () => {
+      off();
+      w.stop();
+      wake.current = null;
+      setWakeHeard(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wakeOn]);
+
   const listen = async () => {
     if (listening) {
       stopListening();
       return;
     }
+    pressing.current = true;
+    wake.current?.pause(true);
     engineer.hush();
     setHeard('');
     setListening(true);
     try {
       const question = await listenOnce(setHeard);
       setListening(false);
+      pressing.current = false;
+      wake.current?.pause(talking.current);
       if (question) ask(question);
-      else showCaption({ engineer: 'Ingen lokal talegenkendelse. Prøv igen, eller brug spørgsmålsknapperne.' });
+      else showCaption({ engineer: 'Jeg hørte ikke noget. Tryk på mikrofonen og spørg igen.' });
     } catch (e) {
       setListening(false);
+      pressing.current = false;
+      wake.current?.pause(talking.current);
       showCaption({ engineer: (e as Error).message });
     }
   };
@@ -214,6 +257,7 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
               style={{ width: i === page ? 14 : 6, height: 6, borderRadius: 3, backgroundColor: i === page ? accent : C.faint }} />
           ))}
         </View>
+        {wakeListening ? <Text accessibilityLabel="Mads lytter efter sit navn" style={{ color: C.good, fontSize: 11 }}>Mads lytter</Text> : null}
         {micAvailable ? (
           <Pressable onPress={listen} accessibilityLabel={listening ? 'Stop med at lytte' : 'Spørg løbsingeniøren'} hitSlop={8}
             style={[styles.closeBtn, { width: 40, backgroundColor: listening ? accent : C.panel }]}>
@@ -249,9 +293,10 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
           </View>
         ))}
       </ScrollView>
-      {listening || caption ? (
+      {listening || caption || wakeHeard ? (
         <View style={[styles.caption, { bottom: showQuestions ? 64 : 14 }]} pointerEvents="none">
           {listening ? <Text style={{ color: accent, fontWeight: '700', fontSize: 14 }}>🎤 Lytter … {heard ? `“${heard}”` : 'spørg nu'}</Text> : null}
+          {!listening && wakeHeard ? <Text style={{ color: accent, fontWeight: '700', fontSize: 14 }}>🎧 Mads lytter … {wakeHeard !== '…' ? `“${wakeHeard}”` : ''}</Text> : null}
           {!listening && caption?.you ? <Text style={{ color: C.muted, fontSize: 13 }}>Du: {caption.you}</Text> : null}
           {!listening && caption?.engineer ? <Text style={{ color: C.text, fontSize: 15, fontWeight: '600' }}>🎧 {caption.engineer}</Text> : null}
         </View>

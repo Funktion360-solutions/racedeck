@@ -69,6 +69,26 @@ class Voice {
   /** Called with every sentence that is spoken (drive mode shows it as a caption). */
   onSpeak: ((text: string) => void) | null = null;
 
+  /** Called when the engineer starts or stops talking (the "Mads" listener pauses meanwhile). */
+  private busyListeners = new Set<(busy: boolean) => void>();
+  private busy = false;
+
+  onBusyChange(fn: (busy: boolean) => void): () => void {
+    this.busyListeners.add(fn);
+    fn(this.busy);
+    return () => this.busyListeners.delete(fn);
+  }
+
+  get isBusy() {
+    return this.busy;
+  }
+
+  private setBusy(busy: boolean) {
+    if (this.busy === busy) return;
+    this.busy = busy;
+    this.busyListeners.forEach((fn) => fn(busy));
+  }
+
   configure(o: { engine: VoiceEngine; rate: number; voiceId: string; cloud: CloudVoiceConfig | null; variant: 'a' | 'b' }) {
     this.engine = o.engine;
     this.rate = o.rate;
@@ -116,6 +136,7 @@ class Voice {
   stop() {
     this.queue = [];
     this.halt();
+    this.setBusy(false);
   }
 
   private halt() {
@@ -131,7 +152,7 @@ class Voice {
     this.speaking = false;
     const now = Date.now();
     this.queue = this.queue.filter((m) => now - m.at < 6000);
-    if (!this.queue.length) return;
+    if (!this.queue.length) { this.setBusy(false); return; }
     this.queue.sort((a, b) => b.priority - a.priority || a.at - b.at);
     const m = this.queue.shift() as Message;
     this.speak(m.text);
@@ -140,6 +161,7 @@ class Voice {
   private speak(text: string) {
     this.onSpeak?.(text);
     this.speaking = true;
+    this.setBusy(true);
     const id = ++this.generation;
     if (this.usingAiVoice) this.speakCloud(text, id);
     else this.speakDevice(text, id);
