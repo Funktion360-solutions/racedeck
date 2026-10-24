@@ -41,7 +41,14 @@ export async function POST(request: Request): Promise<Response> {
       body: JSON.stringify({ text, model_id: env.ELEVENLABS_MODEL || 'eleven_flash_v2_5', voice_settings: { stability: .5, similarity_boost: .8, speed: input.speed ?? 1 } }),
     });
     if (!response.ok) {
-      console.error('RaceDeck TTS upstream status', response.status);
+      // Log only the provider's machine-readable error code, never its message,
+      // request text, credentials, or complete response body.
+      let providerCode = 'unknown';
+      try {
+        const detail = (await response.json())?.detail;
+        if (typeof detail?.status === 'string' && /^[a-z][a-z0-9_]{0,79}$/.test(detail.status)) providerCode = detail.status;
+      } catch { /* Non-JSON provider errors have no safe code. */ }
+      console.error('RaceDeck TTS upstream status', response.status, 'code', providerCode);
       return error(response.status === 429 || response.status === 402 ? 429 : 502, 'AI-stemmen er ikke tilgængelig.');
     }
     return new Response(await response.arrayBuffer(), { headers: { ...headers, 'Content-Type': 'audio/mpeg' } });

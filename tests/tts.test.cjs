@@ -38,3 +38,18 @@ test('TTS sends text in POST body and returns private, uncached audio', async ()
   assert.equal(JSON.parse(api.calls[0].options.body).text, 'Radiotjek.');
   assert.equal(api.calls[0].options.headers['xi-api-key'], 'test-only');
 });
+
+test('Provider errors log only a safe error code and hide provider details', async () => {
+  for (const code of ['voice_not_found', 'invalid_model_id', 'secret key with spaces']) {
+    const logs = [];
+    const api = load('website/api/tts.ts', {}, {
+      process: { env: base },
+      console: { error: (...args) => logs.push(args) },
+      fetch: async () => Response.json({ detail: { status: code, message: 'private provider message' } }, { status: 400 }),
+    });
+    const response = await api.POST(request({ text: 'Radiotjek.' }));
+    assert.equal(response.status, 502);
+    assert.deepEqual(logs[0], ['RaceDeck TTS upstream status', 400, 'code', code.includes(' ') ? 'unknown' : code]);
+    assert.equal((await response.text()).includes('private provider message'), false);
+  }
+});
