@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "RaceDeck",
+    "slug": "racedesk",
+    "version": "1.0.0",
+    "orientation": "landscape",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#101513",
+    "ios": {
+      "bundleIdentifier": "dk.racedeck.app",
+      "supportsTablet": true,
+      "requireFullScreen": true,
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "RaceDeck henter live telemetri fra Gran Turismo 7 på din PS5 via dit lokale netværk.",
+        "UIStatusBarHidden": true,
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "dk.racedeck.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#101513"
+      }
+    },
+    "plugins": [
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "LANDSCAPE"
+        }
+      ],
+      "expo-font",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fb03bec8-2701-4dce-acc0-65f5c1f3d3b7"
+      }
+    },
+    "owner": "akselslot360s-team"
+  }
+}
