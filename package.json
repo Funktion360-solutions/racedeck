@@ -6,13 +6,14 @@
   "author": "Magnus Slot",
   "main": "index.ts",
   "scripts": {
-    "setup": "expo install react react-native react-native-svg react-native-safe-area-context @react-native-async-storage/async-storage expo-constants expo-status-bar expo-keep-awake expo-screen-orientation expo-clipboard expo-font @expo-google-fonts/barlow-condensed expo-speech expo-audio expo-dev-client react-native-udp buffer && expo install typescript @types/react -- --save-dev",
+    "setup": "expo install react react-native react-native-svg react-native-safe-area-context @react-native-async-storage/async-storage expo-constants expo-status-bar expo-keep-awake expo-screen-orientation expo-clipboard expo-font @expo-google-fonts/barlow-condensed expo-speech expo-audio expo-build-properties expo-secure-store expo-file-system expo-speech-recognition@~57.1.0 expo-dev-client react-native-udp buffer && expo install typescript @types/react -- --save-dev",
     "start": "expo start",
     "start:go": "expo start --go",
     "start:dev": "expo start --dev-client",
     "typecheck": "tsc --noEmit",
     "build:android": "eas build --profile development --platform android",
-    "build:ios": "eas build --profile development --platform ios"
+    "build:ios": "eas build --profile development --platform ios",
+    "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "@expo-google-fonts/barlow-condensed": "^0.4.1",
@@ -35,6 +36,10 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "15.15.4",
     "react-native-udp": "^4.1.7",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "expo-build-properties": "~57.0.22",
+    "expo-secure-store": "~57.0.4",
+    "expo-file-system": "~57.0.7",
+    "expo-speech-recognition": "~57.1.0"
   }
 }

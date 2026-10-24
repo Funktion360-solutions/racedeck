@@ -6,6 +6,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { engineer } from '../engineer';
+import { QUICK_QUESTIONS } from '../engineer/answers';
+import { canListen, listenOnce, stopListening } from '../engineer/listen';
 import { DashWidget } from '../model/layouts';
 import { useStore } from '../model/store';
 import { stateLabel, useTelemetry } from '../telemetry/hub';
@@ -112,6 +114,57 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
   const startIndex = Math.max(0, store.layouts.findIndex((l) => l.id === store.selectedId));
   const [page, setPage] = useState(startIndex);
   const [showHint, setShowHint] = useState(true);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [wearPicker, setWearPicker] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [heard, setHeard] = useState('');
+  const [caption, setCaption] = useState<{ you?: string; engineer?: string } | null>(null);
+  const captionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const micAvailable = canListen();
+
+  const showCaption = (c: { you?: string; engineer?: string }) => {
+    setCaption(c);
+    if (captionTimer.current) clearTimeout(captionTimer.current);
+    captionTimer.current = setTimeout(() => setCaption(null), 6000);
+  };
+
+  // Show what the engineer says as a caption too (handy with the sound off).
+  useEffect(() => {
+    engineer.onSpeak = (text) => showCaption({ engineer: text });
+    return () => {
+      engineer.onSpeak = null;
+      stopListening();
+      if (captionTimer.current) clearTimeout(captionTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const ask = (question: string) => {
+    showCaption({ you: question, engineer: '…' });
+    engineer
+      .ask(question)
+      .then((reply) => showCaption({ you: question, engineer: reply }))
+      .catch(() => showCaption({ you: question, engineer: 'Det gik galt. Prøv igen.' }));
+  };
+
+  const listen = async () => {
+    if (listening) {
+      stopListening();
+      return;
+    }
+    engineer.hush();
+    setHeard('');
+    setListening(true);
+    try {
+      const question = await listenOnce(setHeard);
+      setListening(false);
+      if (question) ask(question);
+      else showCaption({ engineer: 'Ingen lokal talegenkendelse. Prøv igen, eller brug spørgsmålsknapperne.' });
+    } catch (e) {
+      setListening(false);
+      showCaption({ engineer: (e as Error).message });
+    }
+  };
   const scroller = useRef<ScrollView>(null);
   const pageWidth = width - Math.max(10, insets.left) - Math.max(10, insets.right);
   const layout = store.layouts[page] ?? store.selected;
@@ -161,6 +214,16 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
               style={{ width: i === page ? 14 : 6, height: 6, borderRadius: 3, backgroundColor: i === page ? accent : C.faint }} />
           ))}
         </View>
+        {micAvailable ? (
+          <Pressable onPress={listen} accessibilityLabel={listening ? 'Stop med at lytte' : 'Spørg løbsingeniøren'} hitSlop={8}
+            style={[styles.closeBtn, { width: 40, backgroundColor: listening ? accent : C.panel }]}>
+            <Text style={{ fontSize: 15 }}>🎤</Text>
+          </Pressable>
+        ) : null}
+        <Pressable onPress={() => setShowQuestions((v) => !v)} accessibilityLabel="Spørgsmål til løbsingeniøren" hitSlop={8}
+          style={[styles.closeBtn, { width: 40, backgroundColor: showQuestions ? accent : C.panel }]}>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: showQuestions ? C.onAccent : C.text }}>?</Text>
+        </Pressable>
         <Pressable
           onPress={() => store.updateSettings({ engineer: { ...store.settings.engineer, enabled: !store.settings.engineer.enabled } })}
           accessibilityLabel={store.settings.engineer.enabled ? 'Slå løbsingeniøren fra' : 'Slå løbsingeniøren til'}
@@ -186,6 +249,46 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
           </View>
         ))}
       </ScrollView>
+      {listening || caption ? (
+        <View style={[styles.caption, { bottom: showQuestions ? 64 : 14 }]} pointerEvents="none">
+          {listening ? <Text style={{ color: accent, fontWeight: '700', fontSize: 14 }}>🎤 Lytter … {heard ? `“${heard}”` : 'spørg nu'}</Text> : null}
+          {!listening && caption?.you ? <Text style={{ color: C.muted, fontSize: 13 }}>Du: {caption.you}</Text> : null}
+          {!listening && caption?.engineer ? <Text style={{ color: C.text, fontSize: 15, fontWeight: '600' }}>🎧 {caption.engineer}</Text> : null}
+        </View>
+      ) : null}
+      {showQuestions ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.questions} contentContainerStyle={{ gap: 8, paddingHorizontal: 8, alignItems: 'center' }}>
+          {wearPicker ? (
+            <>
+              <Text style={{ color: C.muted, fontSize: 12, fontWeight: '700' }}>Dæk tilbage:</Text>
+              {[90, 80, 70, 60, 50, 40, 30, 20, 10].map((n) => (
+                <Pressable key={n} onPress={() => { ask(`Dækkene har ${n} procent tilbage`); setWearPicker(false); }} accessibilityRole="button" accessibilityLabel={`${n} procent dæk tilbage`}
+                  style={({ pressed }) => [styles.chip, pressed && { backgroundColor: accent }]}>
+                  <Text style={{ color: C.text, fontWeight: '800', fontSize: 14 }}>{n} %</Text>
+                </Pressable>
+              ))}
+              <Pressable onPress={() => { ask('Nye dæk'); setWearPicker(false); }} accessibilityRole="button" style={styles.chip}>
+                <Text style={{ color: C.text, fontWeight: '700', fontSize: 14 }}>🆕 Nye dæk</Text>
+              </Pressable>
+              <Pressable onPress={() => setWearPicker(false)} accessibilityRole="button" style={styles.chip}>
+                <Text style={{ color: C.muted, fontWeight: '700', fontSize: 14 }}>Tilbage</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              {QUICK_QUESTIONS.map((q) => (
+                <Pressable key={q.topic} onPress={() => ask(q.question)} accessibilityRole="button" accessibilityLabel={q.question}
+                  style={({ pressed }) => [styles.chip, pressed && { backgroundColor: accent }]}>
+                  {({ pressed }: { pressed: boolean }) => <Text style={{ color: pressed ? C.onAccent : C.text, fontWeight: '700', fontSize: 14 }}>{q.label}</Text>}
+                </Pressable>
+              ))}
+              <Pressable onPress={() => setWearPicker(true)} accessibilityRole="button" accessibilityLabel="Meld dækslid" style={[styles.chip, { borderColor: accent }]}>
+                <Text style={{ color: accent, fontWeight: '800', fontSize: 14 }}>🛞 Meld slid</Text>
+              </Pressable>
+            </>
+          )}
+        </ScrollView>
+      ) : null}
       {showHint ? (
         <View style={styles.hint} pointerEvents="none">
           <Text style={{ color: C.muted, fontSize: 11 }}>Swipe for at skifte side</Text>
@@ -204,5 +307,8 @@ const styles = StyleSheet.create({
   drive: { flex: 1, backgroundColor: '#050706', gap: 6 },
   driveTop: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 30 },
   closeBtn: { width: 34, height: 28, borderRadius: 14, backgroundColor: C.panel, alignItems: 'center', justifyContent: 'center' },
+  caption: { position: 'absolute', alignSelf: 'center', maxWidth: '86%', backgroundColor: 'rgba(0,0,0,0.85)', borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, gap: 2, alignItems: 'center' },
+  questions: { position: 'absolute', left: 10, right: 10, bottom: 10, height: 48, backgroundColor: 'rgba(0,0,0,0.85)', borderRadius: 14, borderWidth: 1, borderColor: C.border },
+  chip: { height: 34, paddingHorizontal: 14, borderRadius: 17, backgroundColor: C.panel, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
   hint: { position: 'absolute', bottom: 12, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.65)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
 });

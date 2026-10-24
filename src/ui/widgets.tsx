@@ -10,6 +10,8 @@ import { Flag, Frame, fuelPercent, gearText, has, speedKmh, suggestedGearText } 
 import type { Snapshot } from '../telemetry/hub';
 import * as fmt from './format';
 import { C, alpha, numFont, tyreColor, tyreLabel } from './theme';
+import { engineer } from '../engineer';
+import { pitPlan } from '../engineer/pit';
 
 export interface WidgetProps {
   t: Snapshot;
@@ -265,6 +267,25 @@ function Trio({ items, w, h }: { items: [string, string, string][]; w: number; h
   );
 }
 
+/** When to box and how much to add – the same plan the race engineer speaks. */
+function Pit({ t, w, h }: WidgetProps) {
+  const plan = pitPlan(t.frame, t.stats, engineer.pitOptions());
+  const blinkOn = Math.floor(Date.now() / 400) % 2 === 0;
+  const color =
+    plan.status === 'boxNow' ? (blinkOn ? C.ledRed : C.text)
+      : plan.status === 'box' && plan.lapsUntil === 1 ? C.warm
+        : plan.status === 'save' ? C.warm
+          : plan.status === 'noStop' ? C.good
+            : plan.status === 'box' ? C.text : C.muted;
+  const headline = plan.headline.toUpperCase();
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+      <Num size={Math.min(h * 0.5, (w / Math.max(4, headline.length)) * 1.7)} weight={800} color={color}>{headline}</Num>
+      {plan.detail ? <Cap size={9}>{plan.detail}</Cap> : null}
+    </View>
+  );
+}
+
 function RaceInfo({ t, w, h }: WidgetProps) {
   const f = t.frame;
   return (
@@ -453,7 +474,7 @@ function Timer({ t, accent, w, h }: WidgetProps) {
 
 export const WIDGETS: Record<WidgetKind, (p: WidgetProps) => React.ReactElement> = {
   cockpit: Cockpit, speed: Speed, rpm: Rpm, gear: Gear, pedals: Pedals, fuel: Fuel, fuelCompact: FuelCompact,
-  lapTime: LapTime, lapTimes: LapTimes, delta: Delta, lapCount: LapCount, position: Position, raceInfo: RaceInfo,
+  lapTime: LapTime, lapTimes: LapTimes, delta: Delta, lapCount: LapCount, position: Position, raceInfo: RaceInfo, pit: Pit,
   tyres: Tyres, map: TrackMap, assists: Assists, temps: Temps, distance: Distance, timer: Timer,
 };
 

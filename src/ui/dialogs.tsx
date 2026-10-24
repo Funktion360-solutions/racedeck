@@ -11,6 +11,7 @@ import { isExpoGo, isValidIp } from '../telemetry/udp';
 import { engineer } from '../engineer';
 import type { Chattiness, EngineerSettings } from '../engineer/brain';
 import { VoiceInfo, findDanishVoice } from '../engineer/voice';
+import { ElevenVoice, getApiKey, listVoices, setApiKey } from '../engineer/eleven';
 import { ListButton, Note, Row, Section, Segmented, Sheet, Stepper, Toggle } from './Sheet';
 import { ACCENTS, ACCENT_NAMES, C, tyreColor } from './theme';
 
@@ -171,6 +172,61 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
     if (visible) findDanishVoice().then(setDanishVoice).catch(() => setDanishVoice(null));
   }, [visible]);
   const eng = settings.engineer;
+  const ai = settings.ai;
+  const setAi = (patch: Partial<typeof ai>) => updateSettings({ ai: { ...ai, ...patch } });
+  const setOllama = (patch: Partial<typeof ai.ollama>) => setAi({ ollama: { ...ai.ollama, ...patch } });
+  const [hasKey, setHasKey] = useState(false);
+  const [keyDraft, setKeyDraft] = useState('');
+  const [voices, setVoices] = useState<ElevenVoice[] | null>(null);
+  const [voiceMsg, setVoiceMsg] = useState<string | null>(null);
+  const [manualVoice, setManualVoice] = useState('');
+  const [ownKeyOpen, setOwnKeyOpen] = useState(false);
+  useEffect(() => {
+    if (visible) getApiKey().then((k) => setHasKey(!!k)).catch(() => setHasKey(false));
+  }, [visible]);
+  const saveKey = async () => {
+    const k = keyDraft.trim();
+    if (!k) return;
+    await setApiKey(k);
+    setHasKey(true);
+    setKeyDraft('');
+    loadVoices(k);
+  };
+  const removeKey = async () => {
+    await setApiKey(null);
+    setHasKey(false);
+    setVoices(null);
+    setAi({ elevenVoiceId: '', elevenVoiceName: '' });
+    setOwnKeyOpen(false);
+    setVoiceMsg('Nøglen er slettet fra telefonen. Fælles stemme bruges kun, hvis den er aktiveret; ellers bruges telefonens stemme.');
+  };
+  const loadVoices = async (k?: string) => {
+    setVoiceMsg('Henter dine stemmer …');
+    try {
+      const key = k ?? (await getApiKey());
+      if (!key) return setVoiceMsg('Indsæt din nøgle først.');
+      const list = await listVoices(key);
+      setVoices(list);
+      setVoiceMsg(list.length ? 'Vælg en stemme. Danske stemmer står øverst.' : 'Der er ingen stemmer på din konto endnu. Tilføj en dansk stemme fra Voice Library på elevenlabs.io.');
+    } catch (e) {
+      setVoiceMsg(`${(e as Error).message} Du kan også indsætte et Voice ID manuelt nedenfor.`);
+    }
+  };
+  const chooseVoice = (id: string, name: string) => {
+    setAi({ voice: 'ai', elevenVoiceId: id, elevenVoiceName: name });
+    setVoiceMsg(`Valgt: ${name}. Tryk "Test stemme" ovenfor.`);
+  };
+  const [aiTest, setAiTest] = useState<string | null>(null);
+  const [aiTesting, setAiTesting] = useState(false);
+  const runAiTest = () => {
+    setAiTesting(true);
+    setAiTest('Kontakter AI-hjernen … (første gang kan tage op til et minut, mens modellen indlæses)');
+    engineer
+      .testAi()
+      .then(setAiTest)
+      .catch(() => setAiTest('Testen fejlede.'))
+      .finally(() => setAiTesting(false));
+  };
   const setEng = (patch: Partial<EngineerSettings>) => updateSettings({ engineer: { ...eng, ...patch } });
 
   return (
@@ -223,8 +279,8 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
           />
           <Toggle label="Omgangstider og ny bedste omgang" value={eng.lapTimes} onChange={(lapTimes) => setEng({ lapTimes })} accent={accent} />
           <Toggle label="Delta midt på omgangen (foran/bagud)" value={eng.delta} onChange={(delta) => setEng({ delta })} accent={accent} />
-          <Toggle label="Brændstof (rækker det til mål?)" value={eng.fuel} onChange={(fuel) => setEng({ fuel })} accent={accent} />
-          <Toggle label="Dæk for varme eller kolde" value={eng.tyres} onChange={(tyres) => setEng({ tyres })} accent={accent} />
+          <Toggle label="Brændstof og pitstop (hvornår du skal ind)" value={eng.fuel} onChange={(fuel) => setEng({ fuel })} accent={accent} />
+          <Toggle label="Dæk (for varme, kolde eller slidte)" value={eng.tyres} onChange={(tyres) => setEng({ tyres })} accent={accent} />
           <Toggle label="Placering (overhalinger)" value={eng.position} onChange={(position) => setEng({ position })} accent={accent} />
           <Toggle label="Løbet (to omgange tilbage, sidste omgang)" value={eng.race} onChange={(race) => setEng({ race })} accent={accent} />
           <Stepper label="Talehastighed" value={Math.round(eng.rate * 10)} min={7} max={13} onChange={(v) => setEng({ rate: v / 10 })} format={(v) => `${(v / 10).toFixed(1).replace('.', ',')}×`} />
@@ -239,6 +295,143 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
             : 'Der er ingen dansk stemme på telefonen. iPhone: Indstillinger → Tilgængelighed → Oplæst indhold → Stemmer → Dansk. Android: Indstillinger → Tekst-til-tale → installér dansk.'}
       </Note>
       <Note>Tip: Vælg en "forbedret" eller "premium" dansk stemme på telefonen – den lyder meget mere naturlig.</Note>
+
+      <Section>AI-stemme</Section>
+      <Segmented<'ai' | 'device'>
+        options={[{ value: 'ai', label: 'Naturlig AI-stemme' }, { value: 'device', label: 'Telefonens stemme' }]}
+        value={ai.voice}
+        onChange={(v) => setAi({ voice: v })}
+      />
+      {ai.voice === 'ai' ? (
+        <>
+          {engineer.sharedVoiceAvailable && !(hasKey && ai.elevenVoiceId) ? (
+            <Segmented<'a' | 'b'>
+              options={[{ value: 'a', label: 'Stemme 1' }, { value: 'b', label: 'Stemme 2' }]}
+              value={ai.voiceVariant}
+              onChange={(v) => setAi({ voiceVariant: v })}
+            />
+          ) : null}
+          <Note>
+            {hasKey && ai.elevenVoiceId
+              ? `Bruger din egen ElevenLabs-stemme (${ai.elevenVoiceName || ai.elevenVoiceId}).`
+              : engineer.sharedVoiceAvailable
+                ? 'Ved valg af AI-stemme sendes beskedtekst til ElevenLabs via RaceDecks stemmeserver. Det kræver internet. Vælg telefonens stemme for at undgå denne overførsel. Når månedens fælles kvote er brugt, skifter den automatisk til telefonens stemme – eller du kan bruge din egen ElevenLabs-nøgle nedenfor.'
+                : 'Den fælles AI-stemme er ikke aktiveret i denne version. Brug din egen ElevenLabs-nøgle nedenfor, ellers bruges telefonens stemme.'}
+          </Note>
+          {engineer.aiVoiceError ? <Note style={{ color: C.warm }}>Seneste problem: {engineer.aiVoiceError}</Note> : null}
+          <Toggle label="Brug min egen ElevenLabs-nøgle (valgfrit)" value={ownKeyOpen || hasKey} onChange={(v) => setOwnKeyOpen(v)} accent={accent} />
+          {ownKeyOpen || hasKey ? (
+            <>
+          {hasKey ? (
+            <Row>
+              <Text style={{ color: C.text, fontSize: 15 }}>ElevenLabs-nøgle</Text>
+              <Text style={{ color: C.good }}>Gemt ✓</Text>
+            </Row>
+          ) : (
+            <Row>
+              <TextInput
+                value={keyDraft}
+                onChangeText={setKeyDraft}
+                placeholder="Indsæt din ElevenLabs API-nøgle"
+                placeholderTextColor={C.faint}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={{ flex: 1, color: C.text, fontSize: 15 }}
+                accessibilityLabel="ElevenLabs API-nøgle"
+              />
+              <Pressable onPress={saveKey} disabled={!keyDraft.trim()} accessibilityRole="button"
+                style={{ backgroundColor: accent, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8, opacity: keyDraft.trim() ? 1 : 0.4 }}>
+                <Text style={{ color: C.onAccent, fontWeight: '800' }}>Gem</Text>
+              </Pressable>
+            </Row>
+          )}
+          <Row>
+            <Text style={{ color: C.text, fontSize: 15 }}>Stemme</Text>
+            <Text style={{ color: ai.elevenVoiceId ? C.text : C.muted, flex: 1, textAlign: 'right' }} numberOfLines={1}>{ai.elevenVoiceName || ai.elevenVoiceId || 'Ikke valgt'}</Text>
+          </Row>
+          {hasKey ? <ListButton icon="↻" label="Hent mine stemmer" onPress={() => loadVoices()} accent={accent} /> : null}
+          {voices
+            ? [...voices]
+              .sort((a, b) => Number(/dan/i.test(b.language ?? '')) - Number(/dan/i.test(a.language ?? '')))
+              .map((v) => (
+                <ListButton key={v.id} icon={v.id === ai.elevenVoiceId ? '●' : '○'} label={v.name} detail={v.language ?? undefined} onPress={() => chooseVoice(v.id, v.name)} accent={accent} />
+              ))
+            : null}
+          {hasKey ? (
+            <Row>
+              <TextInput
+                value={manualVoice}
+                onChangeText={setManualVoice}
+                placeholder="…eller indsæt et Voice ID"
+                placeholderTextColor={C.faint}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={{ flex: 1, color: C.text, fontSize: 14 }}
+                accessibilityLabel="Voice ID"
+              />
+              <Pressable onPress={() => { if (manualVoice.trim()) chooseVoice(manualVoice.trim(), manualVoice.trim()); setManualVoice(''); }} accessibilityRole="button"
+                style={{ borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: C.border, opacity: manualVoice.trim() ? 1 : 0.4 }}>
+                <Text style={{ color: C.text, fontWeight: '700' }}>Brug</Text>
+              </Pressable>
+            </Row>
+          ) : null}
+          {voiceMsg ? <Note>{voiceMsg}</Note> : null}
+          {hasKey ? <ListButton icon="✕" danger label="Slet nøglen fra telefonen" onPress={removeKey} accent={accent} /> : null}
+              <Note>
+                Med din egen nøgle bruger du ikke af RaceDecks fælles kvote. Brug en ElevenLabs-konto med passende licens og kvote. Tilføj en dansk stemme, og opret en nøgle med adgang til "Text to Speech" og "Voices". Sæt en kreditgrænse på nøglen; du betaler selv for din kontos forbrug. Nøglen gemmes krypteret på telefonen og sendes kun til ElevenLabs.
+              </Note>
+            </>
+          ) : null}
+        </>
+      ) : (
+        <Note>Telefonens indbyggede danske stemme. Gratis og virker uden internet.</Note>
+      )}
+
+      <Section>AI-hjerne (lokal, Ollama)</Section>
+      <Toggle label="Brug lokal AI til at formulere beskeder og svare" value={ai.ollama.enabled} onChange={(enabled) => setOllama({ enabled })} accent={accent} />
+      {ai.ollama.enabled ? (
+        <>
+          <Row>
+            <Text style={{ color: C.text, fontSize: 15 }}>Computer</Text>
+            <TextInput
+              value={ai.ollama.host}
+              onChangeText={(host) => setOllama({ host: host.trim() })}
+              placeholder="IP på computeren, fx 192.168.1.50"
+              placeholderTextColor={C.faint}
+              keyboardType="numbers-and-punctuation"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{ flex: 1, color: C.text, fontSize: 15, textAlign: 'right' }}
+              accessibilityLabel="IP-adresse på computeren med Ollama"
+            />
+          </Row>
+          <Row>
+            <Text style={{ color: C.text, fontSize: 15 }}>Model</Text>
+            <TextInput
+              value={ai.ollama.model}
+              onChangeText={(model) => setOllama({ model: model.trim() })}
+              placeholder="qwen2.5:7b"
+              placeholderTextColor={C.faint}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{ flex: 1, color: C.text, fontSize: 15, textAlign: 'right' }}
+              accessibilityLabel="Ollama-model"
+            />
+          </Row>
+          <ListButton icon="▶" label={aiTesting ? 'Tester …' : 'Test AI-hjernen'} onPress={() => { if (!aiTesting) runAiTest(); }} accent={accent} />
+          {aiTest ? <Note>{aiTest}</Note> : null}
+        </>
+      ) : null}
+      <Note>
+        Ollama kører på din egen computer på det lokale netværk. AI’en vælger mellem godkendte formuleringer og hjælper med at forstå spørgsmål. Svar bygges på kendte data, ikke frie gæt om fx bremsepunkter eller sektorer. Ved langsomme svar bruges den normale besked. Akutte beskeder springer AI-hjernen over.
+      </Note>
+
+      <Section>Pitstrategi</Section>
+      <Stepper label="Reserve ved pitstop" value={Math.round(eng.pitReserve * 10)} min={0} max={10} onChange={(v) => setEng({ pitReserve: v / 10 })} format={(v) => `${(v / 10).toFixed(1).replace('.', ',')} omg.`} />
+      <Stepper label="Skift dæk ved" value={eng.tyreChangeAt} min={10} max={60} step={5} onChange={(tyreChangeAt) => setEng({ tyreChangeAt })} format={(v) => `${v} % tilbage`} />
+      <Stepper label="Fast dækskift efter" value={eng.tyreStint} min={0} max={60} onChange={(tyreStint) => setEng({ tyreStint })} format={(v) => (v === 0 ? 'Fra' : `${v} omg.`)} />
+      <Note>Pitplanen bygger på dit brændstofforbrug pr. omgang (gennemsnit af de sidste tre hele omgange) og løbets længde. Den beregner, hvornår du senest skal ind, og hvor meget du skal tanke for at nå i mål med reserven ovenfor – uden at køre med mere vægt end nødvendigt. GT7 sender ikke dækslid, så du melder det selv i kør-tilstand: tryk ? → 🛞 Meld slid, eller sig "dækkene har 70 procent tilbage". Så udregner han slid pr. omgang og tager dækskiftet med i planen. Kender du på forhånd antal omgange pr. dæksæt, kan du i stedet sætte et fast dækskift. Han advarer også, hvis dine omgangstider falder, så dækkene ser slidte ud.</Note>
 
       <Section>Visning</Section>
       <Toggle label="Mph i stedet for km/t" value={settings.useMPH} onChange={(useMPH) => updateSettings({ useMPH })} accent={accent} />

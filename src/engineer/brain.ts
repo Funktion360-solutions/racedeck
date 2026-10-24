@@ -3,6 +3,8 @@
 
 import { Flag, Frame, has } from '../telemetry/frame';
 import type { Stats } from '../telemetry/tracker';
+import { PitOptions, PitPlan, pitPlan } from './pit';
+import { TyreEstimate, TyreReport, estimateTyres } from './tyres';
 
 /**
  * The race engineer's brain: watches telemetry and decides *when* there is
@@ -22,10 +24,17 @@ export interface EngineerSettings {
   race: boolean;
   chatty: Chattiness;
   rate: number; // speaking speed, 1 = normal
+  /** Laps of fuel to keep as a margin when pitting. */
+  pitReserve: number;
+  /** Change tyres after this many laps (0 = off). GT7 doesn't send tyre wear. */
+  tyreStint: number;
+  /** Change tyres when this many percent are left (used with your own wear reports). */
+  tyreChangeAt: number;
 }
 
 export const defaultEngineer: EngineerSettings = {
   enabled: true, lapTimes: true, delta: true, fuel: true, tyres: true, position: true, race: true, chatty: 'normal', rate: 1,
+  pitReserve: 0.3, tyreStint: 0, tyreChangeAt: 25,
 };
 
 export interface TyreLimits {
@@ -100,8 +109,55 @@ export class EngineerBrain {
   private coldWarned = false;
   private warmSaid = false;
   private fuelOkSaid = false;
-  private lapsSinceFuelStatus = 0;
-  private shortFuelWarnedLap = -10;
+  // Pit strategy and tyre stint
+  private stintStartLap = 1;
+  private lastFuelPct: number | null = null;
+  private plan: PitPlan | null = null;
+  private planSpokenLap = -10;
+  private planSpokenBoxLap: number | null = null;
+  private boxNowCalledLap = -1;
+  private stintLapTimes: { lap: number; time: number }[] = [];
+  private degradeWarnedLap = -10;
+  private tyreReports: TyreReport[] = [];
+  private tyreLowWarned = false;
+  private askedForWear = false;
+  private currentLap = 0;
+
+  /** Pit strategy settings plus the tyre stint and your wear reports. */
+  pitOptions(cfg: EngineerSettings): PitOptions {
+    const est = this.tyreEstimate(cfg);
+    return { reserveLaps: cfg.pitReserve, tyreStintLaps: cfg.tyreStint, stintStartLap: this.stintStartLap, tyreBoxLap: est?.changeLap ?? null };
+  }
+
+  tyreEstimate(cfg: EngineerSettings): TyreEstimate | null {
+    return estimateTyres(this.tyreReports, this.stintStartLap, Math.max(1, this.currentLap), cfg.tyreChangeAt);
+  }
+
+  /** You told the engineer how much tyre is left (most worn tyre, %). Returns his reply. */
+  reportTyres(remaining: number, cfg: EngineerSettings): string {
+    const lap = Math.max(1, this.currentLap);
+    this.tyreReports = [...this.tyreReports.filter((r) => r.lap !== lap), { lap, remaining }];
+    this.askedForWear = true;
+    this.tyreLowWarned = remaining <= cfg.tyreChangeAt + 10 ? this.tyreLowWarned : false;
+    const est = this.tyreEstimate(cfg);
+    const done = Math.max(0, lap - this.stintStartLap);
+    let text = `Noteret: ${Math.round(remaining)} procent dæk tilbage`;
+    if (!est || est.perLap < 0.05) return `${text}. Jeg skal bruge en melding mere for at se, hvor hurtigt de slides.`;
+    text += ` efter ${done} omgang${done === 1 ? '' : 'e'}. Det er cirka ${est.perLap.toFixed(1).replace('.', ',')} procent pr. omgang.`;
+    if (est.remainingNow <= cfg.tyreChangeAt) text += ' Dækkene er slidte – box for nye dæk.';
+    else if (est.changeLap !== null) text += ` De holder til omkring omgang ${est.changeLap}, hvor du skifter ved ${cfg.tyreChangeAt} procent.`;
+    return text;
+  }
+
+  /** You told the engineer you have new tyres. */
+  newTyres(): string {
+    this.stintStartLap = Math.max(1, this.currentLap);
+    this.tyreReports = [];
+    this.stintLapTimes = [];
+    this.tyreLowWarned = false;
+    this.askedForWear = false;
+    return 'Noteret: nye dæk. Sig til om et par omgange, hvor meget de er slidt.';
+  }
 
   reset() {
     Object.assign(this, new EngineerBrain());
@@ -120,8 +176,28 @@ export class EngineerBrain {
       this.lapCount = s.lapTimes.length;
       this.lastLap = f.lap;
       this.lastPosition = f.position > 0 ? f.position : null;
+      this.stintStartLap = 1; // joined mid-race: assume the tyres are from the start
+      this.currentLap = f.lap;
+      this.lastFuelPct = fuelPct(f);
       return out;
     }
+
+    // --- Pit stop detected (the tank was filled): new stint ---
+    const pct = fuelPct(f);
+    if (this.lastFuelPct !== null && pct > this.lastFuelPct + 3) {
+      const hadReports = this.tyreReports.length > 0;
+      this.stintStartLap = Math.max(1, f.lap);
+      this.stintLapTimes = [];
+      this.tyreReports = [];
+      this.tyreLowWarned = false;
+      this.askedForWear = false;
+      this.fuelOkSaid = false;
+      this.planSpokenLap = -10;
+      this.planSpokenBoxLap = null;
+      say('fuel', 1, hadReports ? 'Godt stop. Jeg regner med nye dæk.' : 'Godt stop.');
+    }
+    this.currentLap = f.lap;
+    this.lastFuelPct = pct;
 
     const driving = has(f, Flag.onTrack) && !has(f, Flag.paused) && !has(f, Flag.loading);
     if (!driving) return out;
@@ -146,7 +222,15 @@ export class EngineerBrain {
       else if (lap < prevBest) say('lapTimes', 2, `Ny bedste omgang! ${spokenLap(lap)}.`);
       else if (cfg.chatty !== 'low' || lap - prevBest < 0.3) say('lapTimes', 1, `${spokenLap(lap)}. ${spokenGap(lap - prevBest)} efter din bedste.`);
       this.lapCount = times.length;
-      this.fuelReport(f, s, cfg, say);
+      this.stintLapTimes.push({ lap: f.lap - 1, time: lap });
+      this.pitReport(f, s, cfg, say);
+      this.tyreWear(f, cfg, say);
+    }
+
+    // --- Last chance: remind mid-lap when the box is this lap ---
+    if (this.plan?.status === 'boxNow' && s.bestLap && s.currentLap !== null && s.currentLap >= 0.65 * s.bestLap && this.boxNowCalledLap !== f.lap) {
+      this.boxNowCalledLap = f.lap;
+      say('fuel', 3, 'Box, box, box! Pit denne omgang.');
     }
 
     // --- Delta against the best lap, at fixed points in the lap ---
@@ -204,33 +288,78 @@ export class EngineerBrain {
     return out;
   }
 
-  /** Spoken once per lap, right after the lap time. */
-  private fuelReport(f: Frame, s: Stats, cfg: EngineerSettings, say: (c: Category, p: Message['priority'], t: string) => void) {
-    const left = s.fuelLapsLeft;
-    if (left === null) return;
-    this.lapsSinceFuelStatus++;
-    const remaining = f.totalLaps > 0 ? f.totalLaps - f.lap + 1 : null; // laps still to drive, incl. this one
-    const whole = Math.floor(left);
-    const enough = remaining !== null && left >= remaining + 0.05;
-    if (enough) {
-      // Enough to finish: say it once, then stay quiet about fuel.
-      if (!this.fuelOkSaid && left >= remaining + 0.3) {
-        this.fuelOkSaid = true;
-        say('fuel', 1, 'Brændstoffet rækker til mål.');
-      }
-    } else if (left < 1.2) {
-      say('fuel', 3, 'Brændstof kritisk. Box denne omgang!');
-    } else if (remaining !== null) {
-      if (f.lap - this.shortFuelWarnedLap >= 2) {
-        this.shortFuelWarnedLap = f.lap;
-        const short = remaining - left;
-        say('fuel', 2, `Brændstoffet rækker ikke til mål. Du mangler ${comma(short, 1)} omgang${short >= 1.05 ? 'e' : ''}. Spar brændstof eller box.`);
-      }
-    } else if (left < 3.2) {
-      say('fuel', 2, `Brændstof til ${whole} omgang${whole === 1 ? '' : 'e'}.`);
-    } else if (cfg.chatty === 'high' || this.lapsSinceFuelStatus >= 5) {
-      this.lapsSinceFuelStatus = 0;
-      say('fuel', 1, `Brændstof til ${whole} omgange.`);
+  /** Spoken once per lap, right after the lap time: the pit plan. */
+  private pitReport(f: Frame, s: Stats, cfg: EngineerSettings, say: (c: Category, p: Message['priority'], t: string) => void) {
+    const plan = pitPlan(f, s, this.pitOptions(cfg));
+    this.plan = plan;
+    switch (plan.status) {
+      case 'noStop':
+        if (!this.fuelOkSaid && f.totalLaps > 0) {
+          this.fuelOkSaid = true;
+          say('fuel', 1, plan.text);
+        }
+        break;
+      case 'save':
+        if (f.lap - this.planSpokenLap >= 2) {
+          this.planSpokenLap = f.lap;
+          say('fuel', 2, plan.text);
+        }
+        break;
+      case 'box':
+        if (plan.lapsUntil === 1 || plan.boxLap !== this.planSpokenBoxLap || f.lap - this.planSpokenLap >= (cfg.chatty === 'high' ? 2 : 3)) {
+          this.planSpokenLap = f.lap;
+          this.planSpokenBoxLap = plan.boxLap;
+          say('fuel', plan.lapsUntil === 1 ? 2 : 1, plan.text);
+        }
+        break;
+      case 'boxNow':
+        say('fuel', 3, plan.text);
+        break;
+      default:
+        break;
     }
   }
+
+  /**
+   * GT7 doesn't send tyre wear, so we look at the lap times instead: if the last
+   * three laps of this stint are clearly slower than the stint's best three, the
+   * tyres are probably going off.
+   */
+  private tyreWear(f: Frame, cfg: EngineerSettings, say: (c: Category, p: Message['priority'], t: string) => void) {
+    // From your own wear reports
+    const est = this.tyreEstimate(cfg);
+    if (est && !this.tyreLowWarned && est.remainingNow <= cfg.tyreChangeAt + 10) {
+      this.tyreLowWarned = true;
+      say('tyres', 2, `Dækkene er ved at være slidte. Cirka ${Math.round(est.remainingNow)} procent tilbage.`);
+    }
+    // Ask for a report after a few laps on the same tyres (once per stint)
+    const onTyres = f.lap - this.stintStartLap;
+    const lapsToGo = f.totalLaps > 0 ? f.totalLaps - f.lap : 99;
+    if (!this.askedForWear && !this.tyreReports.length && onTyres >= 5 && lapsToGo >= 3 && cfg.chatty !== 'low') {
+      this.askedForWear = true;
+      say('tyres', 1, 'Hvor meget dæk har du tilbage? Sig fx "dækkene har 70 procent", så regner jeg det med i pitplanen.');
+    }
+    const laps = this.stintLapTimes.filter((t) => t.lap > this.stintStartLap).map((t) => t.time);
+    if (laps.length < 5) return;
+    const best = Math.min(...laps);
+    const clean = laps.filter((t) => t < best * 1.15); // ignore spins, traffic and pit laps
+    if (clean.length < 5) return;
+    const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
+    const ref = mean([...clean].sort((a, b) => a - b).slice(0, 3));
+    const recent = mean(clean.slice(-3));
+    const gap = recent - ref;
+    if (gap >= 0.8 && f.lap - this.degradeWarnedLap >= 4) {
+      this.degradeWarnedLap = f.lap;
+      say('tyres', cfg.chatty === 'low' ? 1 : 2, `Dine omgange er ${spokenGap(gap)} langsommere end dine bedste i denne stint. Dækkene er nok ved at være slidte.`);
+    }
+  }
+
+  /** Laps driven on the current tyres. */
+  stintLaps(f: Frame): number {
+    return Math.max(0, f.lap - this.stintStartLap);
+  }
+}
+
+function fuelPct(f: Frame): number {
+  return f.fuelCapacity > 0 ? (f.fuelLevel / f.fuelCapacity) * 100 : f.fuelLevel;
 }

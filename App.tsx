@@ -15,6 +15,7 @@ import { AppState, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StoreProvider, useStore } from './src/model/store';
 import { engineer } from './src/engineer';
+import { stopListening } from './src/engineer/listen';
 import { hub } from './src/telemetry/hub';
 import { WelcomeSheet } from './src/ui/dialogs';
 import { DriveScreen, HomeScreen } from './src/ui/screens';
@@ -68,8 +69,20 @@ function Root() {
   }, [ready, settings.source, settings.ps5Address]);
 
   useEffect(() => {
-    engineer.configure(settings.engineer, { tyreCold: settings.tyreCold, tyreHot: settings.tyreHot });
-  }, [settings.engineer, settings.tyreCold, settings.tyreHot]);
+    engineer.configure(settings.engineer, { tyreCold: settings.tyreCold, tyreWarm: settings.tyreWarm, tyreHot: settings.tyreHot, useMPH: settings.useMPH });
+  }, [settings.engineer, settings.tyreCold, settings.tyreWarm, settings.tyreHot, settings.useMPH]);
+
+  useEffect(() => {
+    engineer.configureAi(settings.ai);
+  }, [settings.ai, settings.engineer.rate]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      engineer.setActive(driving && state === 'active');
+      if (state !== 'active') stopListening();
+    });
+    return () => { sub.remove(); engineer.setActive(false); stopListening(); };
+  }, [driving]);
 
   if (!ready) return null;
   return (

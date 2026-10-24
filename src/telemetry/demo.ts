@@ -32,6 +32,9 @@ function trackPoint(p: number): [number, number] {
 const GEAR_TOP = [0, 70, 108, 145, 182, 220, 400];
 
 export class DemoDriver {
+  /** 15 laps: one tank isn't enough, so the demo shows the pit strategy and makes a stop. */
+  constructor(private totalLaps = 15) {}
+
   private tick = 0;
   private lap = 0; // 0 = on the grid, so lap 1 is timed from the start
   private lapStart = 0;
@@ -63,7 +66,9 @@ export class DemoDriver {
       this.lap++;
       this.lapStart = this.tick;
       this.pace = 0.985 + Math.random() * 0.03;
-      if (this.lap > 10) {
+      // Pit stop: the demo driver boxes when the tank can't do another lap.
+      if (this.fuel < 9 && this.lap <= this.totalLaps) this.fuel = 100;
+      if (this.lap > this.totalLaps) {
         this.lap = 0;
         this.fuel = 100;
         this.best = -1;
@@ -103,7 +108,7 @@ export class DemoDriver {
       tyres: [0, 1, 2, 3].map((i) => (i < 2 ? 84 : 78) + 16 * Math.sin(t * 0.11 + i * 1.3) + (braking && i < 2 ? 6 : 0)) as Frame['tyres'],
       tick: this.tick,
       lap: this.lap,
-      totalLaps: 10,
+      totalLaps: this.totalLaps,
       bestLapMs: this.best,
       lastLapMs: this.last,
       position: Math.max(1, 6 - Math.floor(this.lap / 2)),

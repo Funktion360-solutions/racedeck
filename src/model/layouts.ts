@@ -5,7 +5,7 @@ export type DashStyle = 'standard' | 'racing';
 
 export type WidgetKind =
   | 'cockpit' | 'speed' | 'rpm' | 'gear' | 'pedals' | 'fuel' | 'fuelCompact' | 'lapTime' | 'lapTimes' | 'delta'
-  | 'lapCount' | 'position' | 'raceInfo' | 'tyres' | 'map' | 'assists' | 'temps' | 'distance' | 'timer';
+  | 'lapCount' | 'position' | 'raceInfo' | 'pit' | 'tyres' | 'map' | 'assists' | 'temps' | 'distance' | 'timer';
 
 export interface KindInfo {
   title: string;
@@ -27,6 +27,7 @@ export const KINDS: Record<WidgetKind, KindInfo> = {
   delta: { title: 'Delta', detail: 'Plus/minus mod din bedste omgang, målt hen over omgangen.', span: 2, tall: false },
   lapCount: { title: 'Omgangstæller', detail: 'Omgang ud af antal omgange.', span: 1, tall: false },
   position: { title: 'Placering', detail: 'Din placering i løbet.', span: 1, tall: false },
+  pit: { title: 'Pitstrategi', detail: 'Hvornår du skal i pit, og hvor meget du skal tanke.', span: 2, tall: false },
   raceInfo: { title: 'Løbsinfo', detail: 'Sessionstid, placering og omgang i én boks.', span: 2, tall: false },
   tyres: { title: 'Dæk · alle fire', detail: 'Temperatur på alle fire dæk med glidende farver.', span: 3, tall: true },
   map: { title: 'Banekort', detail: 'Tegner banen mens du kører, med din position.', span: 3, tall: true },
@@ -75,11 +76,11 @@ export function defaultLayouts(): DashLayout[] {
       id: uid(), name: 'Racerdisplay', accent: 4, style: 'racing',
       widgets: [widget('assists', 2, false), widget('delta', 2, false), widget('raceInfo', 2, false),
         widget('lapTimes', 2, true), widget('cockpit', 2, true), widget('tyres', 2, true),
-        widget('temps', 1, false), widget('speed', 1, false), widget('fuelCompact', 4, false)],
+        widget('pit', 2, false), widget('speed', 1, false), widget('fuelCompact', 3, false)],
     },
     {
       id: uid(), name: 'Dæk & brændstof', accent: 2, style: 'standard',
-      widgets: [widget('tyres', 4, true), widget('lapTimes', 2, true), widget('fuel', 4, false), widget('speed', 2, false)],
+      widgets: [widget('tyres', 4, true), widget('lapTimes', 2, true), widget('fuel', 4, false), widget('pit', 2, false)],
     },
     {
       id: uid(), name: 'Overblik', accent: 1, style: 'standard',

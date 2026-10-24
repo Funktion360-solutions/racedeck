@@ -53,3 +53,7 @@ GitHub-upload og Vercel-publicering er ikke udført som del af den lokale samlin
 Projektets egen kode er proprietær og forbeholdt Magnus Slot, Funktion360 og særskilt autoriserede samarbejdspartnere. Se `LICENSE` for de formelle vilkår. Magnus Slot bevarer ejerskabet til appen; Funktion360 er autoriseret udgiver. Tredjepartsmateriale og GPL-browserdemoen beholder deres egne licenser; se `THIRD_PARTY_NOTICES.md`.
 
 Et privat GitHub-repository holder repositorykoden privat. En offentlig hjemmeside leverer stadig JavaScript, HTML, CSS og public-aktiver til besøgende, herunder browserdemoens kildekode. Public-mappen må derfor aldrig indeholde fortrolig appkode eller nøgler.
+
+## Valgfri AI-stemme og lokal AI
+
+Se `AI-OPSAETNING.md` for ElevenLabs-stemme, kreditgrænser, lokal Ollama og mikrofon. Cloud-stemme og Ollama er slået fra som standard. Kør `npm test` for offline regressionstests. API-nøglen skal kun ligge hos Vercel eller i brugerens SecureStore, aldrig i appkonfiguration eller Git. Nyt native build, fysisk test og separat godkendelse kræves før TestFlight-upload.

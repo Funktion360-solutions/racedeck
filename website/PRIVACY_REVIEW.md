@@ -6,8 +6,8 @@ Privatlivssiden på `/privatliv` (og `?lang=en`) er et udtrykkeligt mærket udka
 
 - `src/model/store.tsx` i appen lagrer layouts, indstillinger, valgt side og PS5-adresse lokalt med AsyncStorage.
 - `src/telemetry/udp.ts` kommunikerer direkte med den angivne PS5-adresse. Sessionens telemetri behandles i hukommelsen.
-- `src/engineer/voice.ts` bruger systemets tekst-til-tale; mikrofon og baggrundsoptagelse er slået fra i appkonfigurationen.
-- Ingen brugerlogin, reklame-SDK, analyseintegration eller egen telemetri-upload fundet i appens kildekode.
+- `src/engineer/voice.ts` bruger systemets tekst-til-tale som standard og understøtter valgfri ElevenLabs-tale. Mikrofon/talegenkendelse kræver aktiv brug og systemtilladelse. Ved manglende lokal talegenkendelse bruges spørgsmålsknapperne; baggrundsoptagelse er slået fra.
+- Ingen brugerlogin, reklame-SDK eller analyseintegration fundet i appens kildekode. Valgfri Ollama sender udvalgte fakta/spørgsmål til den angivne computer; ElevenLabs modtager taletekst direkte eller via Vercel. Cloud-stemme er ikke aktiveret i det nuværende build-setup.
 - Hovedsiden bruger systemskrifter. Sprogvalg ligger i URL'en og giver ikke lokal cookie eller localStorage.
 - Den separate, bevarede browserdemo bruger localStorage og indlæser Google Fonts. GPL-licens og demoens kildearkiv er uændrede.
 - Apples TestFlight behandler test- og nedbrudsdata særskilt fra appens lokale telemetri.
@@ -29,3 +29,5 @@ Fjern først udkastmarkeringerne, når de udestående forhold er bekræftet og t
 - Apple: https://www.apple.com/legal/privacy/data/en/test-flight/
 - Datatilsynet: https://www.datatilsynet.dk/borger/hvad-er-dine-rettigheder
 - Vercel: https://vercel.com/legal/privacy-notice
+
+8. Før AI-aktivering: bekræft ElevenLabs-vilkår, databehandling/overførsler, lydcache og slettepraksis samt informeret valg af cloud-stemme. Bekræft talegenkendelsens faktiske adfærd på fysiske enheder. Den tidligere beskrivelse uden mikrofon/AI gælder ikke længere.

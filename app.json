@@ -14,7 +14,10 @@
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "RaceDeck henter live telemetri fra Gran Turismo 7 på din PS5 via dit lokale netværk.",
         "UIStatusBarHidden": true,
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
       }
     },
     "android": {
@@ -36,16 +39,40 @@
       [
         "expo-audio",
         {
-          "microphonePermission": false,
-          "recordAudioAndroid": false,
+          "microphonePermission": "RaceDeck bruger kun mikrofonen, når du stiller løbsingeniøren et spørgsmål.",
+          "recordAudioAndroid": true,
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
         }
-      ]
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "RaceDeck bruger mikrofonen, når du stiller løbsingeniøren et spørgsmål.",
+          "speechRecognitionPermission": "RaceDeck laver dit spørgsmål om til tekst, så løbsingeniøren kan svare.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
         "projectId": "fb03bec8-2701-4dce-acc0-65f5c1f3d3b7"
+      },
+      "racedeck": {
+        "ttsEnabled": false,
+        "ttsUrl": "",
+        "ttsToken": ""
       }
     },
     "owner": "akselslot360s-team"

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Source } from '../telemetry/hub';
 import { EngineerSettings, defaultEngineer } from '../engineer/brain';
+import { AiSettings, defaultAi } from '../engineer';
 import { DashLayout, DashWidget, WidgetKind, defaultLayouts, isLayout, uid, widget } from './layouts';
 
 export interface Settings {
@@ -20,6 +21,8 @@ export interface Settings {
   hasSeenWelcome: boolean;
   /** The talking race engineer (Danish voice). */
   engineer: EngineerSettings;
+  /** AI voice (ElevenLabs via your server) and local AI brain (Ollama). */
+  ai: AiSettings;
 }
 
 /** Defaults follow GT7 community tests: racing tyres wear sharply from ~88–93 °C. */
@@ -28,6 +31,7 @@ export const GT7_TYRES = { tyreCold: 60, tyreWarm: 85, tyreHot: 95 };
 const defaultSettings: Settings = {
   source: 'demo', ps5Address: '', useMPH: false, keepScreenOn: true, shiftFlash: true, ...GT7_TYRES, hasSeenWelcome: false,
   engineer: defaultEngineer,
+  ai: defaultAi,
 };
 
 interface Store {
@@ -68,7 +72,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .then((raw) => {
         if (!raw) return;
         const data = JSON.parse(raw);
-        if (data?.settings) setSettings({ ...defaultSettings, ...data.settings, engineer: { ...defaultEngineer, ...(data.settings.engineer ?? {}) } });
+        if (data?.settings) setSettings({ ...defaultSettings, ...data.settings, engineer: { ...defaultEngineer, ...(data.settings.engineer ?? {}) }, ai: { ...defaultAi, ...(data.settings.ai ?? {}), ollama: { ...defaultAi.ollama, ...(data.settings.ai?.ollama ?? {}) } } });
         if (Array.isArray(data?.layouts) && data.layouts.length && data.layouts.every(isLayout)) {
           const loaded = (data.layouts as DashLayout[]).map((l) => ({ ...l, style: l.style ?? 'standard' }));
           setLayoutsState(loaded);

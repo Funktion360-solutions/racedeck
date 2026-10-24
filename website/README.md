@@ -18,7 +18,7 @@ npm run preview
 
 ## Vercel
 
-Importér det private GitHub-repository og vælg **Root Directory: `website`**. Framework: Vite. Install: `npm ci`. Build: `npm run build`. Output: `dist`. `vercel.json` håndterer direkte besøg på `/privatliv` og `/privacy`. Ingen miljøvariabler kræves af den nuværende websitekode.
+Importér det private GitHub-repository og vælg **Root Directory: `website`**. Framework: Vite. Install: `npm ci`. Build: `npm run build`. Output: `dist`. `vercel.json` håndterer direkte besøg på `/privatliv` og `/privacy`. Produktsiden kræver ingen miljøvariabler. Den nye `/api/tts`-funktion er lukket som standard og kræver separat opsætning; se `../AI-OPSAETNING.md`.
 
 ## Sider og interaktioner
 
@@ -31,7 +31,7 @@ Screenshots i `public/images` kommer fra Aksels IMG_7003, IMG_7004 og IMG_7005 o
 
 ## Privatliv og lancering
 
-Privatlivspolitikken er mærket som **udkast**. `PRIVACY_REVIEW.md` beskriver de dokumenterede kodefund og de udestående oplysninger om kontakt, hosting, mail, opbevaring og overførsler. Udkastet må ikke behandles som en færdig lanceringspolitik. `noindex,nofollow` beholdes under gennemgang.
+Privatlivspolitikken er mærket som **udkast**. `PRIVACY_REVIEW.md` beskriver de dokumenterede kodefund og de udestående oplysninger om kontakt, hosting, mail, opbevaring, AI-tjenester og overførsler. Udkastet må ikke behandles som en færdig lanceringspolitik. `noindex,nofollow` beholdes under gennemgang.
 
 Hovedsiden bruger systemskrifter uden analyseværktøjer, reklamesporing, login eller formular. Browserdemoen bruger Google Fonts og localStorage, som er beskrevet særskilt. Kodegennemgangen erstatter ikke kontrol af leverandørkontoens indstillinger eller det faktiske release-build.
 
