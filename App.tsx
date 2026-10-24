@@ -7,12 +7,14 @@ import {
   BarlowCondensed_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/barlow-condensed';
+import { setAudioModeAsync } from 'expo-audio';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { AppState, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StoreProvider, useStore } from './src/model/store';
+import { engineer } from './src/engineer';
 import { hub } from './src/telemetry/hub';
 import { WelcomeSheet } from './src/ui/dialogs';
 import { DriveScreen, HomeScreen } from './src/ui/screens';
@@ -24,6 +26,12 @@ export default function App() {
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {});
+    // Let the race engineer speak even with the iPhone's silent switch on, and turn other audio down meanwhile.
+    try {
+      setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'duckOthers' }).catch(() => {});
+    } catch {
+      // audio mode is a nice-to-have
+    }
   }, []);
 
   return (
@@ -58,6 +66,10 @@ function Root() {
       hub.stop();
     };
   }, [ready, settings.source, settings.ps5Address]);
+
+  useEffect(() => {
+    engineer.configure(settings.engineer, { tyreCold: settings.tyreCold, tyreHot: settings.tyreHot });
+  }, [settings.engineer, settings.tyreCold, settings.tyreHot]);
 
   if (!ready) return null;
   return (

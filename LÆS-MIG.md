@@ -17,6 +17,26 @@ Appen er skrevet i **React Native med Expo (SDK 57) og TypeScript**. Den virker 
 - **Dæk.** Farverne glider fra blå over grøn og gul til rød. Standardgrænserne 60 / 85 / 95 °C bygger på spillernes egne målinger i GT7.
 - **Banekort.** Banen tegnes, mens du kører. **Del sider** som en kode.
 - **Format.** Appen bruges liggende, og skærmen holdes tændt under kørsel.
+- **Løbsingeniør på dansk.** Han taler til dig under kørsel med telefonens egen danske stemme. Det kræver ikke internet og virker også i Expo Go. Se næste afsnit.
+
+## Løbsingeniøren
+
+Når **Kør** er åben, siger han korte beskeder på dansk på de rigtige tidspunkter:
+
+| Emne | Eksempler |
+|---|---|
+| Omgangstider | "Ny bedste omgang! 1 minut 19,8." · "1 minut 20,4. 6 tiendedele efter din bedste." |
+| Delta | Midt på omgangen: "3 tiendedele foran." · "Lige på din bedste tid." |
+| Brændstof | "Brændstoffet rækker til mål." · "Brændstoffet rækker ikke til mål. Du mangler 0,6 omgang. Spar brændstof eller box." · "Brændstof kritisk. Box denne omgang!" |
+| Dæk | "Fordækkene er for varme." · "Dækkene er kolde. Pas på grebet." |
+| Placering | "Plads 4. Godt overhalet!" · "Du er faldet til plads 6." · "Du fører løbet!" |
+| Løbet | "To omgange tilbage." · "Sidste omgang!" |
+
+- **Indstillinger:** Under ⚙︎ → **Løbsingeniør** kan du slå hvert emne til og fra og vælge, hvor meget han snakker (Lidt / Normal / Meget). Du kan også ændre talehastigheden og teste stemmen.
+- **Slå lyden fra:** Knappen 🔊 øverst i kør-tilstand slår ham fra og til.
+- **Han snakker ikke for meget:** Han siger én ting ad gangen, og vigtige beskeder kommer først. Det, der er mere end 6 sekunder gammelt, springer han over. Et dæk, der bliver ved med at være varmt, nævner han ikke igen, før det har kølet af.
+- **Bedre stemme:** Installér en forbedret dansk stemme på telefonen, så lyder han mere naturlig. På iPhone finder du dem under Indstillinger → Tilgængelighed → Oplæst indhold → Stemmer → Dansk.
+- **Lydløs-knap:** På iPhone taler han også, selvom lydløs-knappen er slået til, og musik skrues ned, mens han taler.
 
 ## Vigtigt: Expo Go eller development build
 
@@ -85,6 +105,7 @@ Appen husker IP-adressen og forbinder selv næste gang. Giv gerne PS5'en en fast
 
 | Mappe | Indhold |
 |---|---|
+| `src/engineer` | `brain.ts` (hvornår og hvad han siger), `voice.ts` (dansk stemme og kø), `index.ts` |
 | `src/telemetry` | `salsa20.ts` (dekryptering), `frame.ts` (pakkeformat), `tracker.ts` (omgangstider, brændstof, delta, banekort), `udp.ts` (forbindelse og heartbeat), `demo.ts` (demobil), `hub.ts` (data til skærmen) |
 | `src/model` | Sider, widgets og indstillinger. Alt gemmes på telefonen med AsyncStorage. |
 | `src/ui` | Widgets, gitter, forside, kør-tilstand og dialoger |

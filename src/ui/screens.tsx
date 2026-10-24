@@ -5,6 +5,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import React, { useEffect, useRef, useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { engineer } from '../engineer';
 import { DashWidget } from '../model/layouts';
 import { useStore } from '../model/store';
 import { stateLabel, useTelemetry } from '../telemetry/hub';
@@ -119,9 +120,11 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     if (store.settings.keepScreenOn) activateKeepAwakeAsync('drive').catch(() => {});
+    engineer.setActive(true);
     const hint = setTimeout(() => setShowHint(false), 3500);
     return () => {
       deactivateKeepAwake('drive');
+      engineer.setActive(false);
       clearTimeout(hint);
     };
   }, [store.settings.keepScreenOn]);
@@ -158,6 +161,14 @@ export function DriveScreen({ onClose }: { onClose: () => void }) {
               style={{ width: i === page ? 14 : 6, height: 6, borderRadius: 3, backgroundColor: i === page ? accent : C.faint }} />
           ))}
         </View>
+        <Pressable
+          onPress={() => store.updateSettings({ engineer: { ...store.settings.engineer, enabled: !store.settings.engineer.enabled } })}
+          accessibilityLabel={store.settings.engineer.enabled ? 'Slå løbsingeniøren fra' : 'Slå løbsingeniøren til'}
+          hitSlop={8}
+          style={[styles.closeBtn, { width: 40 }]}
+        >
+          <Text style={{ fontSize: 15 }}>{store.settings.engineer.enabled ? '🔊' : '🔇'}</Text>
+        </Pressable>
         <Text style={{ color: C.text, fontSize: 17, fontWeight: '600', fontVariant: ['tabular-nums'] }}>⏱ {fmt.clock(t.stats.sessionTime)}</Text>
       </View>
       <ScrollView

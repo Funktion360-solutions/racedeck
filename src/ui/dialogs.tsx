@@ -8,6 +8,9 @@ import { COLUMNS, DashWidget, KINDS, KIND_ORDER, WidgetKind, exportLayout, impor
 import { GT7_TYRES, useStore } from '../model/store';
 import { hub, stateLabel, useTelemetry } from '../telemetry/hub';
 import { isExpoGo, isValidIp } from '../telemetry/udp';
+import { engineer } from '../engineer';
+import type { Chattiness, EngineerSettings } from '../engineer/brain';
+import { VoiceInfo, findDanishVoice } from '../engineer/voice';
 import { ListButton, Note, Row, Section, Segmented, Sheet, Stepper, Toggle } from './Sheet';
 import { ACCENTS, ACCENT_NAMES, C, tyreColor } from './theme';
 
@@ -163,6 +166,12 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
   };
 
   const scale = Array.from({ length: 24 }, (_, i) => tyreColor(40 + i * 3.5, settings));
+  const [danishVoice, setDanishVoice] = useState<VoiceInfo | null | undefined>(undefined);
+  useEffect(() => {
+    if (visible) findDanishVoice().then(setDanishVoice).catch(() => setDanishVoice(null));
+  }, [visible]);
+  const eng = settings.engineer;
+  const setEng = (patch: Partial<EngineerSettings>) => updateSettings({ engineer: { ...eng, ...patch } });
 
   return (
     <Sheet visible={visible} title="Indstillinger" onClose={() => { setConfirmReset(false); onClose(); }} accent={accent}>
@@ -202,6 +211,34 @@ export function SettingsSheet({ visible, onClose, accent }: { visible: boolean; 
       {settings.source === 'ps5' && isExpoGo ? (
         <Note style={{ color: C.warm }}>Du kører i Expo Go, som ikke kan modtage data fra PS5. Brug et development build af RaceDeck – se LÆS-MIG.</Note>
       ) : null}
+
+      <Section>Løbsingeniør</Section>
+      <Toggle label="Løbsingeniøren taler til mig under kørsel" value={eng.enabled} onChange={(enabled) => setEng({ enabled })} accent={accent} />
+      {eng.enabled ? (
+        <>
+          <Segmented<Chattiness>
+            options={[{ value: 'low', label: 'Lidt' }, { value: 'normal', label: 'Normal' }, { value: 'high', label: 'Meget' }]}
+            value={eng.chatty}
+            onChange={(chatty) => setEng({ chatty })}
+          />
+          <Toggle label="Omgangstider og ny bedste omgang" value={eng.lapTimes} onChange={(lapTimes) => setEng({ lapTimes })} accent={accent} />
+          <Toggle label="Delta midt på omgangen (foran/bagud)" value={eng.delta} onChange={(delta) => setEng({ delta })} accent={accent} />
+          <Toggle label="Brændstof (rækker det til mål?)" value={eng.fuel} onChange={(fuel) => setEng({ fuel })} accent={accent} />
+          <Toggle label="Dæk for varme eller kolde" value={eng.tyres} onChange={(tyres) => setEng({ tyres })} accent={accent} />
+          <Toggle label="Placering (overhalinger)" value={eng.position} onChange={(position) => setEng({ position })} accent={accent} />
+          <Toggle label="Løbet (to omgange tilbage, sidste omgang)" value={eng.race} onChange={(race) => setEng({ race })} accent={accent} />
+          <Stepper label="Talehastighed" value={Math.round(eng.rate * 10)} min={7} max={13} onChange={(v) => setEng({ rate: v / 10 })} format={(v) => `${(v / 10).toFixed(1).replace('.', ',')}×`} />
+          <ListButton icon="▶" label="Test stemme" onPress={() => engineer.test()} accent={accent} />
+        </>
+      ) : null}
+      <Note>
+        {danishVoice === undefined
+          ? 'Leder efter en dansk stemme …'
+          : danishVoice
+            ? `Stemme: ${danishVoice.name}${danishVoice.enhanced ? ' (forbedret)' : ''}. Løbsingeniøren taler kun, når Kør er åben, og kan slås fra med 🔊 øverst.`
+            : 'Der er ingen dansk stemme på telefonen. iPhone: Indstillinger → Tilgængelighed → Oplæst indhold → Stemmer → Dansk. Android: Indstillinger → Tekst-til-tale → installér dansk.'}
+      </Note>
+      <Note>Tip: Vælg en "forbedret" eller "premium" dansk stemme på telefonen – den lyder meget mere naturlig.</Note>
 
       <Section>Visning</Section>
       <Toggle label="Mph i stedet for km/t" value={settings.useMPH} onChange={(useMPH) => updateSettings({ useMPH })} accent={accent} />

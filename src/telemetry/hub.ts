@@ -6,6 +6,7 @@ import { DemoDriver } from './demo';
 import { Flag, Frame, emptyFrame, has } from './frame';
 import { RaceTracker, Stats, emptyStats } from './tracker';
 import { GT7Client } from './udp';
+import { engineer } from '../engineer';
 
 export type Source = 'demo' | 'ps5';
 export type ConnectionState = 'stopped' | 'waiting' | 'live' | 'paused' | 'demo' | 'failed';
@@ -63,6 +64,7 @@ class TelemetryHub {
     this.source = source;
     this.error = null;
     this.tracker.reset();
+    engineer.reset();
     this.latest = emptyFrame();
 
     if (source === 'demo') {
@@ -115,12 +117,14 @@ class TelemetryHub {
   /** Clears lap times, fuel history, top speed, delta and the track map. */
   resetSession() {
     this.tracker.reset();
+    engineer.reset();
     this.dirty = true;
   }
 
   private ingest(f: Frame) {
     this.latest = f;
     this.tracker.ingest(f);
+    engineer.observe(f, this.tracker.stats);
     this.lastPacket = Date.now();
     this.counter++;
     if (this.source === 'ps5') {
