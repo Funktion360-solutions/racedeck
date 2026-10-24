@@ -1,52 +1,40 @@
-# RaceDeck produktwebsite
+# RaceDeck produkthjemmeside
 
-Lokal, upubliceret version til gennemgang. Dansk og engelsk via sprogknappen eller `?lang=en`. Domæne valgt af Aksel: https://racedeck.funktion360.dk. Der er ikke foretaget DNS-ændringer eller deployment.
+React + TypeScript + Vite. Dansk og engelsk (`?lang=en`). Egen mørkegrøn/lime visuel identitet, rigtige screenshots fra appen og fokus på den kommende App Store-lancering. Ingen lanceringsdato eller offentlig TestFlight-adresse er opfundet.
 
-## TypeScript-projekt: udvikling og hosting
-
-Hjemmesiden er nu React + TypeScript med Vite. Appens SwiftUI-kode bruges kun som reference i filgennemgangen og indgår ikke i website-projektet.
-
-Kør fra projektmappen:
+## Lokal udvikling
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Produktionskontrol og build:
+Kontrol og build:
 
 ```sh
-npm run typecheck
 npm run build
 npm run preview
 ```
 
-Publicér `dist` efter build. Ingen DNS-ændringer eller publicering er udført.
+## Vercel
 
-- `src/App.tsx`: React-hjemmeside og sprogskift.
-- `src/translations.ts`: typede danske og engelske tekster.
-- `src/main.tsx`: React-opstart.
-- `src/style.css`: responsivt design.
-- `public/demo`: separat original browserdemo med egen licens og kildearkiv. Demoen er fortsat HTML/JavaScript, så originalen og licensoplysningerne bevares uændret.
+Importér det private GitHub-repository og vælg **Root Directory: `website`**. Framework: Vite. Install: `npm ci`. Build: `npm run build`. Output: `dist`. `vercel.json` håndterer direkte besøg på `/privatliv` og `/privacy`. Ingen miljøvariabler kræves af den nuværende websitekode.
 
-Produktwebsitet bruger systemskrifter og har ingen formular, analyseværktøjer eller cookies implementeret. Browserdemoen bruger Google Fonts. Hostingens behandling og logning er ikke afklaret.
+## Sider og interaktioner
 
-## Før publicering
+- `/`: produktpræsentation, screenshotvælger, FAQ og mobilmenu.
+- `/privatliv`: privatlivspolitik med Magnus Slot som dataansvarlig. Dansk og engelsk.
+- `/demo/`: den oprindelige, særskilte GPL-browserdemo, uændret.
+- `/demo/source.zip`: demoens kildeleverance, bevaret.
 
-- Bekræft endelig udgivelsesversions funktioner og enhedskrav, især efter portering til Expo. Ingen native app er bygget eller testet her.
-- Oplys supportmail og godkend supportflow. Ingen falsk kontaktformular er oprettet.
-- Oplys TestFlight-/App Store-link samt status og eventuel pris. Siden lover ikke adgang eller en lanceringsdato.
-- Afklar faktisk databehandling i den endelige app, hosting, support, eventuel betaling og analyse. Skriv derefter en korrekt dansk/engelsk privatlivsside og eventuelle vilkår. Der er ikke skrevet en uunderbygget privatlivspolitik.
-- Gennemgå demoens upstream-kilder og kildeleverance inden offentlig distribution. Demoens egen tekst omtaler et HA-prototypegrundlag; dette er ikke med i ZIP-filen. Det komplette historiske kildegrundlag er derfor ikke verificeret her. Licenser og credits er bevaret.
-- Godkend tekst/design og demoens danske sprog. Tilføj eventuelt rigtige screenshots fra den færdige app.
-- Vælg hosting og tilslut det aftalte domæne. Fjern `noindex,nofollow` og anmeldelsen i footer, når siden er godkendt til offentlig lancering. Tilføj canonical/hreflang og socialt delingsbillede efter valg af offentlig URL.
+Screenshots i `public/images` kommer fra Aksels IMG_7003, IMG_7004 og IMG_7005 og viser appens demodata. Skærmene er ikke browserdemoen.
 
-## Ophavsret
+## Privatliv og lancering
 
-Magnus Slot er appens udvikler og ophavsretlige ejer. Funktion360 er udgiver. Ingen appfiler eller eksisterende LICENSE-filer er ændret. `APP-LICENSE.reference.txt` er en kopi af den gældende proprietære hovedlicens. Websitekoden ændrer ikke appens ejerskab eller licens. Demoen beholder egne GPL-3.0-oplysninger; appens rettighedstekst anvendes ikke som erstatning for demoens licens.
+Privatlivspolitikken er mærket som **udkast**. `PRIVACY_REVIEW.md` beskriver de dokumenterede kodefund og de udestående oplysninger om kontakt, hosting, mail, opbevaring og overførsler. Udkastet må ikke behandles som en færdig lanceringspolitik. `noindex,nofollow` beholdes under gennemgang.
 
-## Kontrol udført
+Hovedsiden bruger systemskrifter uden analyseværktøjer, reklamesporing, login eller formular. Browserdemoen bruger Google Fonts og localStorage, som er beskrevet særskilt. Kodegennemgangen erstatter ikke kontrol af leverandørkontoens indstillinger eller det faktiske release-build.
 
-TypeScript-kontrol med strict-indstilling og produktionsbuild er bestået (`npm run build`). Alle 44 oversættelsesfelter har dansk og engelsk tekst med fælles typenøgler. Demoen er byte-identisk med den modtagne HTML-fil. Visuel browserkontrol er fortsat ikke verificeret.
+## Rettigheder
 
-Hovedlicensen i `../LICENSE` gælder projektets egen websitekode. Tredjepartsmateriale, herunder GPL-browserdemoen, er udtrykkeligt undtaget. Repositoryet skal være privat; et offentligt website gør dog browserkode og public-aktiver tilgængelige for besøgende.
+RaceDeck er udviklet af Magnus Slot og udgives gennem Funktion360. Eget materiale er omfattet af hovedprojektets proprietære `LICENSE`. Demoen og øvrige tredjepartsmaterialer beholder deres egne licenser; se `../THIRD_PARTY_NOTICES.md`. Repositoryet skal være privat, men browserkode og public-aktiver bliver tilgængelige ved offentlig webhosting.
