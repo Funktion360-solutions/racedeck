@@ -37,7 +37,7 @@ Kontrollér produktionsbuild med `npm run build`.
 
 ## GitHub og Vercel
 
-1. Opret et tomt repository på GitHub. Vælg privat, hvis koden ikke skal være offentlig.
+1. Opret et tomt repository på GitHub. Vælg **Private**. Repositoryet med den proprietære kildekode må ikke være offentligt.
 2. Tilknyt repositoryet som Git remote til denne hovedmappe, og push `main`.
 3. I Vercel: Add New Project → importér GitHub-repositoryet.
 4. Vælg **Root Directory: `website`**.
@@ -47,3 +47,9 @@ Kontrollér produktionsbuild med `npm run build`.
 Der kræves ingen miljøvariabler til den nuværende hjemmeside. Appen bygges hos Expo; Vercel bygger kun `website`.
 
 GitHub-upload og Vercel-publicering er ikke udført som del af den lokale samling. Se `website/README.md` for hjemmesidens status og indhold, der skal afklares før lancering.
+
+## Licens og privat kildekode
+
+Projektets egen kode er proprietær og forbeholdt Magnus Slot, Funktion360 og særskilt autoriserede samarbejdspartnere. Se `LICENSE` for de formelle vilkår. Magnus Slot bevarer ejerskabet til appen; Funktion360 er autoriseret udgiver. Tredjepartsmateriale og GPL-browserdemoen beholder deres egne licenser; se `THIRD_PARTY_NOTICES.md`.
+
+Et privat GitHub-repository holder repositorykoden privat. En offentlig hjemmeside leverer stadig JavaScript, HTML, CSS og public-aktiver til besøgende, herunder browserdemoens kildekode. Public-mappen må derfor aldrig indeholde fortrolig appkode eller nøgler.

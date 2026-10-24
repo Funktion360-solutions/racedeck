@@ -43,8 +43,10 @@ Produktwebsitet bruger systemskrifter og har ingen formular, analyseværktøjer 
 
 ## Ophavsret
 
-Magnus Slot er appens udvikler og ophavsretlige ejer. Funktion360 er udgiver. Ingen appfiler eller eksisterende LICENSE-filer er ændret. `APP-LICENSE.reference.txt` er en uændret referencekopi. Websitekoden ændrer ikke appens ejerskab eller licens. Demoen beholder egne GPL-3.0-oplysninger; appens rettighedstekst anvendes ikke som erstatning for demoens licens.
+Magnus Slot er appens udvikler og ophavsretlige ejer. Funktion360 er udgiver. Ingen appfiler eller eksisterende LICENSE-filer er ændret. `APP-LICENSE.reference.txt` er en kopi af den gældende proprietære hovedlicens. Websitekoden ændrer ikke appens ejerskab eller licens. Demoen beholder egne GPL-3.0-oplysninger; appens rettighedstekst anvendes ikke som erstatning for demoens licens.
 
 ## Kontrol udført
 
 TypeScript-kontrol med strict-indstilling og produktionsbuild er bestået (`npm run build`). Alle 44 oversættelsesfelter har dansk og engelsk tekst med fælles typenøgler. Demoen er byte-identisk med den modtagne HTML-fil. Visuel browserkontrol er fortsat ikke verificeret.
+
+Hovedlicensen i `../LICENSE` gælder projektets egen websitekode. Tredjepartsmateriale, herunder GPL-browserdemoen, er udtrykkeligt undtaget. Repositoryet skal være privat; et offentligt website gør dog browserkode og public-aktiver tilgængelige for besøgende.

@@ -1,9 +1,207 @@
-RaceDeck
-Copyright © 2026 Magnus Slot. Alle rettigheder forbeholdes.
+RACEDECK — PROPRIETÆR LICENS OG VILKÅR FOR ADGANG TIL KILDEKODE
+Version 1.0 · 24. oktober 2026
 
-Denne software, med kildekode, grafik og appikon, ejes af Magnus Slot.
-Den må ikke kopieres, ændres, udgives eller distribueres, helt eller delvist,
-uden skriftlig tilladelse fra ejeren.
+Copyright © 2026 Magnus Slot. Alle rettigheder forbeholdes.
+Udvikler og ophavsretlig ejer af RaceDeck-appen: Magnus Slot.
+Udgiver og autoriseret samarbejdspartner: Funktion360.
+Kontakt vedrørende rettigheder og tilladelser: racedeck@funktion360.dk.
+
+1. FORMÅL OG ANVENDELSESOMRÅDE
+
+Denne licens fastlægger betingelserne for autoriseret adgang til og brug af
+RaceDecks egenudviklede materiale. Materialet omfatter kildekode,
+projektstruktur, egne algoritmer, scripts, konfigurationsfiler, dokumentation,
+grafik, ikoner, designfiler og andre originale projektaktiver, i det omfang
+Magnus Slot eller Funktion360 råder over de nødvendige rettigheder.
+
+Licensen omfatter både app-projektet og den egenudviklede produktwebsitekode,
+med de udtrykkelige undtagelser for tredjepartsmateriale i punkt 9. En fil med
+en særskilt gyldig licens er underlagt denne særskilte licens for det materiale,
+som den pågældende rettighedshaver kan licensere.
+
+Dette er en proprietær kildekodelicens. Adgang til projektet indebærer ikke,
+at materialet stilles til rådighed som open source eller som offentligt eje.
+
+2. RETTIGHEDSFORHOLD
+
+Magnus Slot bevarer ophavsretten til RaceDeck-appen og det materiale, han har
+skabt. Funktion360s adgang, udgivelse og tekniske administration sker på
+grundlag af Magnus Slots tilladelse og inden for den aftalte bemyndigelse.
+Denne licens udgør ikke i sig selv en overdragelse af ophavsret til Funktion360.
+
+Rettigheder til selvstændige bidrag tilhører deres respektive rettighedshavere,
+medmindre andet er aftalt skriftligt. Et bidrag til repositoryet indebærer ikke
+automatisk overdragelse af alle rettigheder. Nødvendige brugs- og
+udgivelsesrettigheder til eksterne bidrag skal være aftalt særskilt.
+
+Ingen rettigheder overdrages ved udlevering, download, betaling, deltagelse i
+test, adgang til repositoryet eller besiddelse af en kopi. Alle rettigheder,
+der ikke udtrykkeligt er meddelt, forbeholdes den relevante rettighedshaver.
+
+3. AUTORISERET INTERN ADGANG
+
+Projektets proprietære kildekode skal opbevares privat og er forbeholdt Magnus
+Slot, Funktion360 og personer, som er særskilt bemyndiget til en konkret opgave.
+En sådan person må alene tilgå, kopiere, bearbejde, teste eller bygge materialet
+i det omfang, det er nødvendigt for den godkendte opgave.
+
+Funktion360 må inden for Magnus Slots bemyndigelse administrere privat
+versionsstyring, gennemføre udvikling og fejlretning, anvende bygge- og
+hostingstjenester og håndtere distribution af godkendte appversioner og
+websiteversioner. Denne bestemmelse udvider ikke en særskilt aftales omfang.
+
+Adgang må ikke videregives til andre ved deling af konti, invitationer,
+adgangstokens, arkiver eller andre adgangsveje uden relevant godkendelse.
+Adgangen er personlig eller knyttet til den udtrykkeligt autoriserede
+organisation og det godkendte formål.
+
+4. BEGRÆNSNINGER FOR PROPRIETÆRT MATERIALE
+
+Uden forudgående skriftlig tilladelse fra den relevante rettighedshaver må
+modtageren ikke:
+
+(a) offentliggøre eller distribuere proprietær kildekode, helt eller delvist,
+    herunder i offentlige repositories, kopier, forks, gists eller filarkiver;
+(b) sælge, udleje, underlicensere eller på anden måde stille materialet til
+    rådighed som et selvstændigt produkt eller som del af et andet produkt;
+(c) anvende materialet til et andet projekt eller til en konkurrerende løsning;
+(d) fjerne eller ændre ophavsretsmeddelelser, licensangivelser, kildehenvisninger
+    eller oplysninger om rettighedshavere;
+(e) give uvedkommende adgang til interne fejlrapporter, ikke-offentliggjorte
+    funktioner, distributionsoplysninger eller fortrolig dokumentation; eller
+(f) indlæse materialet i offentligt tilgængelige kodeanalyse-, delings- eller
+    træningstjenester, hvor det bliver tilgængeligt uden for den godkendte kreds.
+
+Begrænsningerne gælder ikke, hvor ufravigelig lovgivning eller en gældende
+særskilt tredjepartslicens udtrykkeligt giver modtageren den pågældende ret.
+
+5. FORTROLIGHED OG SIKKER OPBEVARING
+
+Ikke-offentliggjort proprietær kildekode og interne projektoplysninger skal
+behandles fortroligt. Autoriserede modtagere skal anvende rimelige tekniske
+og organisatoriske foranstaltninger mod utilsigtet offentliggørelse, tab og
+uvedkommende adgang. Projektets repository skal som udgangspunkt være privat.
+
+Private nøgler, adgangskoder, adgangstokens, signeringsmateriale og andre
+hemmeligheder må ikke indgå i versionshistorikken eller offentlige builds.
+Adgangen til GitHub, Expo, Apple og hosting skal begrænses til personer med et
+arbejdsbetinget behov. Sikkerhedskopier skal beskyttes tilsvarende.
+
+Fortrolighed omfatter ikke oplysninger, der lovligt er offentligt kendte uden
+modtagerens misligholdelse, lovligt er modtaget uden fortrolighedspligt fra
+anden side, eller er udviklet selvstændigt uden brug af beskyttet materiale.
+Lovpligtig videregivelse skal begrænses til det nødvendige. Rettighedshaveren
+skal orienteres forud, hvis det er lovligt og praktisk muligt.
+
+6. TJENESTEUDBYDERE OG PRIVATE REPOSITORIES
+
+Autoriseret brug af et privat GitHub-repository, Expo EAS, App Store Connect,
+Vercel eller tilsvarende tjenester er tilladt inden for projektets godkendte
+arbejdsgang. Udbyderens tekniske behandling, lagring og nødvendige buildkopier
+er ikke en generel tilladelse til offentlig udgivelse af kildekoden.
+
+Upload må kun ske i overensstemmelse med de relevante aftaler og med passende
+adgangsindstillinger. Integrations-, support- eller AI-tjenester må ikke gives
+bredere adgang end den, som projektets ansvarlige har godkendt.
+
+7. UDGIVELSE AF APP OG HJEMMESIDE
+
+Distribution af appens godkendte binære builds gennem TestFlight og App Store
+og offentliggørelse af godkendte websider kræver bemyndigelse fra den relevante
+rettighedshaver. Licensen er ikke en stående godkendelse til enhver fremtidig
+udgivelse eller til offentliggørelse af repositoryet.
+
+En publiceret hjemmeside leverer nødvendigvis HTML, CSS, JavaScript og visse
+aktiver til besøgendes browser. Denne tekniske tilgængelighed giver ikke i sig
+selv en videre licens til det proprietære materiale. Fortrolig appkildekode,
+interne filer og hemmeligheder må ikke placeres i websitets public-mappe eller
+på anden måde medtages i det offentlige build.
+
+8. TESTERE OG SLUTBRUGERE
+
+Adgang til en app eller betaversion giver ikke adgang til eller rettigheder
+over den proprietære kildekode. Slutbrugernes anvendelse reguleres af de
+licensvilkår, platformsvilkår og oplysninger, som faktisk stilles til rådighed
+for og finder anvendelse på dem. Denne interne kildekodelicens erstatter ikke
+en nødvendig slutbrugeraftale, privatlivspolitik eller aftale om databehandling.
+
+Brugerens egne data og selvstændigt skabte layouts overdrages ikke automatisk
+til Magnus Slot eller Funktion360 ved brug af appen.
+
+9. TREDJEPARTSKODE, OPEN SOURCE OG SÆRSKILTE LICENSER
+
+Projektets afhængigheder, skrifter og øvrige tredjepartsaktiver tilhører deres
+respektive rettighedshavere og er underlagt deres egne licenser. Denne licens
+kan ikke fratage tredjepart rettigheder eller begrænse rettigheder, som følger
+af en gældende open source-licens.
+
+Den separate browserdemo under website/public/demo/ indeholder materiale med
+GPL-3.0-angivelser og henvisninger til profittlich/gt7speedboard. Demoens egne
+licensmeddelelser, krediteringer og kildeleverance, herunder source.zip,
+bevares. Dette materiale omlicenseres ikke til proprietær kode ved denne tekst.
+Tidligere lovligt meddelte open source-rettigheder tilbagekaldes ikke.
+
+Omfanget af eventuelle afledte værker afgøres af de faktiske kodeforhold og de
+gældende licenser; en mappeplacering eller denne erklæring er ikke i sig selv
+afgørende. Før offentlig distribution skal de relevante krav om meddelelser,
+kildekode og licensvilkår være opfyldt. Et privat repository ændrer ikke disse
+forpligtelser, når materialet distribueres til andre.
+
+Se også THIRD_PARTY_NOTICES.md. Denne fil er en oversigt og ikke en udtømmende
+licensaudit eller garanti for, at alle distributionskrav er opfyldt.
+
+10. VAREMÆRKER OG KREDITERING
+
+Tilladelse til kodebrug omfatter ikke en selvstændig ret til at registrere eller
+udnytte navnene RaceDeck, Magnus Slot eller Funktion360 som varemærker,
+domænenavne eller afsenderidentitet. Kreditering af udvikler og udgiver skal
+bevares, hvor det er aftalt eller krævet af en gældende licens.
 
 Gran Turismo og PlayStation er varemærker tilhørende Sony Interactive
-Entertainment. RaceDeck er ikke tilknyttet Sony eller Polyphony Digital.
+Entertainment. RaceDeck er ikke tilknyttet, sponsoreret eller godkendt af Sony
+Interactive Entertainment eller Polyphony Digital.
+
+11. FEJL, GARANTIER OG ANSVAR
+
+Medmindre andet er skriftligt aftalt, stilles materialet til rådighed i den
+foreliggende stand uden tilsagn om fejlfrihed, uafbrudt drift eller egnethed
+til et bestemt formål. Telemetri, omgangsberegninger, brændstofestimater og
+talebeskeder kan være forsinkede, ufuldstændige eller fejlagtige.
+
+I det omfang lovgivningen tillader det, påtages intet ansvar for indirekte tab,
+tabt fortjeneste, driftstab eller tab af data som følge af brugen. Begrænsningen
+omfatter ikke ansvar, som ikke lovligt kan begrænses, herunder efter relevante
+ufravigelige regler. Særskilte aftaler og ufravigelige forbrugerrettigheder har
+forrang, hvor de finder anvendelse.
+
+12. OPHØR AF ADGANG OG MISLIGHOLDELSE
+
+Adgang kan ophøre efter den relevante aftale eller ved væsentlig tilsidesættelse
+af betingelserne. Ved ophør skal brug af proprietært materiale standses, og
+lokale kopier tilbageleveres eller slettes efter rettighedshaverens anvisning,
+medmindre en anden gyldig aftale eller lovkrav tillader opbevaring.
+
+Lovpligtige arkivkopier og kopier i almindelige, sikrede backupcyklusser må ikke
+anvendes til fortsat udvikling eller videregivelse. Fortrolighed og
+rettighedsbeskyttelse fortsætter, så længe oplysningerne er beskyttede.
+Rettigheder efter særskilte open source-licenser berøres ikke af dette punkt.
+
+13. ÆNDRINGER OG SÆRSKILTE AFTALER
+
+Afvigelser og yderligere tilladelser skal gives skriftligt af den person, der
+råder over de relevante rettigheder. En særskilt gyldig aftale har forrang ved
+konflikt inden for dens anvendelsesområde. Ændringer af denne fil udvider ikke
+automatisk en medarbejders eller samarbejdspartners eksisterende bemyndigelse
+og ophæver ikke tidligere gyldigt meddelte rettigheder.
+
+14. LOVVALG OG FORTOLKNING
+
+I det omfang et lovvalg gyldigt kan aftales, anvendes dansk ret. Tvister søges
+først løst ved dialog og behandles ellers ved kompetent domstol efter gældende
+værnetingsregler. Ufravigelige regler berøres ikke. Hvis en bestemmelse er
+ugyldig eller ikke kan håndhæves, berøres de øvrige bestemmelsers gyldighed
+ikke i videre omfang end nødvendigt.
+
+Anmodninger om adgang, videreanvendelse eller anden licensering rettes til
+racedeck@funktion360.dk. En anmodning er ikke en tilladelse; en konkret
+bemyndigelse skal foreligge, før den ønskede handling udføres.
