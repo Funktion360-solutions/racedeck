@@ -1,0 +1,9 @@
+RaceDeck til iPhone og iPad
+Copyright © 2026 Magnus Slot. Alle rettigheder forbeholdes.
+
+Denne software, med kildekode, grafik og appikon, ejes af Magnus Slot.
+Den må ikke kopieres, ændres, udgives eller distribueres, helt eller delvist,
+uden skriftlig tilladelse fra ejeren.
+
+Gran Turismo og PlayStation er varemærker tilhørende Sony Interactive
+Entertainment. RaceDeck er ikke tilknyttet Sony eller Polyphony Digital.

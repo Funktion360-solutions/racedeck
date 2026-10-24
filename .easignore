@@ -1,0 +1,19 @@
+node_modules/
+.expo/
+dist/
+ios/
+android/
+*.log
+.DS_Store
+
+# Local credentials and hosting settings
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.*
+!.env.example
+.vercel/
+
+# The website is deployed separately on Vercel.
+/website/
