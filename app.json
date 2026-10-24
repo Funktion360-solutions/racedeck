@@ -71,7 +71,7 @@
       },
       "racedeck": {
         "ttsEnabled": false,
-        "ttsUrl": "",
+        "ttsUrl": "https://racedeck.funktion360.dk/api/tts",
         "ttsToken": ""
       }
     },

@@ -25,6 +25,8 @@ Hold Auto Top Up slået fra. Opret en særskilt ElevenLabs-API-nøgle med kun Te
 
 Serveren forbliver lukket, indtil alle tre aktiveringsflag nedenfor er sat til `true`. Flagene er ejerens bekræftelse af den udførte opsætning — de etablerer ikke selv en kreditgrænse eller rate-limit. Den faktiske kreditgrænse håndhæves hos ElevenLabs; rate-limit/access skal være håndhævet i gatewayen. Sæt ikke flagene blot for at omgå 503-svaret.
 
+Fast produktionsadresse: `https://racedeck.funktion360.dk/api/tts`. Brug ikke et midlertidigt deployment-domæne i appen.
+
 ## Vercel-miljøvariabler
 
 Indtast hemmeligheder i Vercels eget dashboard under det eksisterende RaceDeck-projekt → Settings → Environment Variables. Brug Secret for API-nøgle og app-token. Indsæt ikke værdierne i chatten, GitHub, screenshots eller VITE_-variabler. Opret ikke en lokal fil med produktionshemmeligheder til dette formål.
@@ -47,7 +49,7 @@ Deploy kun efter godkendelse. Hjemmesidens Root Directory er fortsat `website`.
 I `app.json → expo.extra.racedeck` står nu:
 
 ```json
-{ "ttsEnabled": false, "ttsUrl": "", "ttsToken": "" }
+{ "ttsEnabled": false, "ttsUrl": "https://racedeck.funktion360.dk/api/tts", "ttsToken": "" }
 ```
 
 Når serveren er klar, bruges dens konkrete HTTPS-adresse til `/api/tts`, det samme begrænsede app-token og `ttsEnabled: true`. Den rigtige ElevenLabs API-nøgle må ALDRIG stå i `app.json`. App-tokenet er synligt i buildet og må ikke genbruges som konto-/API-nøgle.
