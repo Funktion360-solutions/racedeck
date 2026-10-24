@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "build:android": "eas build --profile development --platform android",
     "build:ios": "eas build --profile development --platform ios",
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "prepare:voice": "node scripts/prepare-voice.cjs"
   },
   "dependencies": {
     "@expo-google-fonts/barlow-condensed": "^0.4.1",

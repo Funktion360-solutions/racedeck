@@ -81,3 +81,9 @@ Fælles stemme sender beskedtekst i POST-body og app-token i Authorization-heade
 `website/src/Privacy.tsx` og `website/PRIVACY_REVIEW.md` beskriver de valgfrie AI-funktioner og de udestående juridiske/leverandørforhold. Politikken er fortsat et udkast.
 
 Kilder: https://elevenlabs.io/pricing · https://elevenlabs.io/docs/overview/administration/workspaces/api-keys · https://elevenlabs.io/docs/overview/administration/pay-as-you-go · https://vercel.com/docs/plans/hobby
+
+## Én lokal kommando til build-tokenet
+
+Når serveren er aktiveret med kreditgrænse og håndhævet ratebegrænsning, kør `npm run prepare:voice`. Kommandoen beder skjult om det nye app-token og kontrollerer serveren med en tom, ugyldig tekst. Det giver intet ElevenLabs-forbrug. Ved korrekt svar gemmes `cloud-voice.local.json` med begrænset filadgang. Filen er gitignored, men medtages bevidst i EAS-arkivet, fordi det fælles beta-token skal være i appen. ElevenLabs API-nøglen må aldrig bruges her.
+
+`app.config.js` læser den lokale fil. Undlad at dele output fra `expo config --type public` efter opsætningen, da det indeholder app-tokenet. En ren Git-klon har ikke denne fil og falder tilbage til telefonens stemme, indtil opsætningen gentages. Nye installationer med gyldig cloud-konfiguration vælger AI-stemme som standard; gemte brugerindstillinger bevares.

@@ -27,7 +27,7 @@ export interface AiSettings {
   ollama: OllamaSettings;
 }
 
-export const defaultAi: AiSettings = { voice: 'device', voiceVariant: 'a', elevenVoiceId: '', elevenVoiceName: '', ollama: defaultOllama };
+export const defaultAi: AiSettings = { voice: cloudVoice ? 'ai' : 'device', voiceVariant: 'a', elevenVoiceId: '', elevenVoiceName: '', ollama: defaultOllama };
 
 const r1 = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? null : Math.round(v * 10) / 10);
 

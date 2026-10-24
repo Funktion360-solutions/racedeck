@@ -17,3 +17,6 @@ android/
 
 # The website is deployed separately on Vercel.
 /website/
+
+# Include the intended mobile build config; never contains provider API keys.
+!/cloud-voice.local.json
