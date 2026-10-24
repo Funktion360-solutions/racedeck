@@ -17,7 +17,8 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true
-        }
+        },
+        "NSPhotoLibraryUsageDescription": "RaceDeck indeholder biblioteker med understøttelse af fotobiblioteket. Den aktuelle version bruger ikke dine billeder og anmoder ikke om adgang til dem."
       }
     },
     "android": {
