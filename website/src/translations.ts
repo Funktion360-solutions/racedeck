@@ -1,7 +1,7 @@
 export type Language = 'da' | 'en';
 export const danish = {
   features: 'Funktioner', cockpit: 'Dit cockpit', setup: 'Kom i gang', privacy: 'Privatliv',
-  status: 'PÅ VEJ MOD APP STORE', kicker: 'GRAN TURISMO 7 · iPHONE & iPAD',
+  status: 'TESTES VIA TESTFLIGHT', kicker: 'GRAN TURISMO 7 · iPHONE & iPAD',
   title: 'Dit cockpit.', titleAccent: 'Dit overblik.',
   intro: 'Mærk bilen. Læs løbet. Gør din iPhone eller iPad til et personligt GT7-dashboard med live-telemetri, dine egne layouts og en dansk løbsingeniør.',
   explore: 'Oplev RaceDeck', demo: 'Prøv browserdemoen', demoShort: 'Åbn demo',
@@ -48,7 +48,7 @@ export const danish = {
 };
 export const english: typeof danish = {
   features: 'Features', cockpit: 'Your cockpit', setup: 'Get started', privacy: 'Privacy',
-  status: 'ON THE ROAD TO THE APP STORE', kicker: 'GRAN TURISMO 7 · iPHONE & iPAD',
+  status: 'IN TESTFLIGHT BETA', kicker: 'GRAN TURISMO 7 · iPHONE & iPAD',
   title: 'Your cockpit.', titleAccent: 'Your focus.',
   intro: 'Feel the car. Read the race. Turn your iPhone or iPad into a personal GT7 dashboard with live telemetry, your own layouts and a Danish-speaking race engineer.',
   explore: 'Explore RaceDeck', demo: 'Try the browser demo', demoShort: 'Open demo',

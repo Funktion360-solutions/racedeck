@@ -6,8 +6,8 @@ Privatlivssiden på `/privatliv` (og `?lang=en`) er et udtrykkeligt mærket udka
 
 - `src/model/store.tsx` i appen lagrer layouts, indstillinger, valgt side og PS5-adresse lokalt med AsyncStorage.
 - `src/telemetry/udp.ts` kommunikerer direkte med den angivne PS5-adresse. Sessionens telemetri behandles i hukommelsen.
-- `src/engineer/voice.ts` bruger systemets tekst-til-tale som standard og understøtter valgfri ElevenLabs-tale. Mikrofon/talegenkendelse kræver aktiv brug og systemtilladelse. Ved manglende lokal talegenkendelse bruges spørgsmålsknapperne; baggrundsoptagelse er slået fra.
-- Ingen brugerlogin, reklame-SDK eller analyseintegration fundet i appens kildekode. Valgfri Ollama sender udvalgte fakta/spørgsmål til den angivne computer; ElevenLabs modtager taletekst direkte eller via Vercel. Cloud-stemme er ikke aktiveret i det nuværende build-setup.
+- `src/engineer/voice.ts` bruger systemets tekst-til-tale og valgfri AI-stemme, som kan være standard ved konfigureret fælles server og understøtter valgfri ElevenLabs-tale. Mikrofon/talegenkendelse kræver aktiv brug og systemtilladelse. Ved manglende lokal talegenkendelse bruges spørgsmålsknapperne; baggrundsoptagelse er slået fra.
+- Ingen brugerlogin, reklame-SDK eller analyseintegration fundet i appens kildekode. Valgfri Ollama sender udvalgte fakta/spørgsmål til den angivne computer; ElevenLabs modtager taletekst direkte eller via Vercel. Den lokale stemmeopsætning kan aktivere fælles AI-stemme i buildet. Kontoindstillinger og faktisk adgang skal kontrolleres separat.
 - Hovedsiden bruger systemskrifter. Sprogvalg ligger i URL'en og giver ikke lokal cookie eller localStorage.
 - Den separate, bevarede browserdemo bruger localStorage og indlæser Google Fonts. GPL-licens og demoens kildearkiv er uændrede.
 - Apples TestFlight behandler test- og nedbrudsdata særskilt fra appens lokale telemetri.
@@ -31,3 +31,24 @@ Fjern først udkastmarkeringerne, når de udestående forhold er bekræftet og t
 - Vercel: https://vercel.com/legal/privacy-notice
 
 8. Før AI-aktivering: bekræft ElevenLabs-vilkår, databehandling/overførsler, lydcache og slettepraksis samt informeret valg af cloud-stemme. Bekræft talegenkendelsens faktiske adfærd på fysiske enheder. Den tidligere beskrivelse uden mikrofon/AI gælder ikke længere.
+
+## Opdatering 25. oktober 2026
+
+Hjemmesiden angiver nu TestFlight-beta. Privatlivssiden har en særskilt dansk/engelsk oversigt over Magnus Slot/Funktion360, Vercel, ElevenLabs, den lokale Ollama-computer, Apple/TestFlight, Expo/EAS, Google Fonts i browserdemoen og den endnu ubekræftede mailudbyder. Hver post beskriver rolle, oplysninger, formål, hvornår overførslen sker, og opbevaring/udestående afklaringer.
+
+- Kontroller den konkrete ElevenLabs-erhvervsaftale, træningsindstilling, opbevaring og overførselsgrundlag. Den almindelige privatlivspolitik undtager visse kundedatabehandlinger, som styres af erhvervsaftalen. Påstå ikke nulopbevaring eller fravalgt træning uden dokumentation.
+- Kontroller Vercels faktiske region, logindstillinger, underleverandører og aftale. Private/no-store-svar er ikke ensbetydende med fravær af drifts- eller sikkerhedslogs.
+- Ollama er aktuelt valgfri lokal behandling; ingen fælles cloud-AI er implementeret. Oplysninger om den lokale computers logs skal følge dens faktiske opsætning.
+- EAS Build/Submit er udviklingsbehandling. EAS Update er fortsat ikke konfigureret og er ikke beskrevet som aktiv behandling af beta-brugere.
+- Mikrofonens håndfri Mads-funktion kræver aktivt tilvalg og er begrænset til forgrunden. Systemtilladelser er ikke i sig selv en færdig GDPR-samtykkeløsning for cloudbehandling; afklar det faktiske informations- og tilvalgsflow.
+- Beta er allerede i brug: ovenstående skal afklares for den aktuelle testbehandling, ikke først ved App Store-lancering.
+
+Leverandørkilder kontrolleret 25. oktober 2026:
+- https://vercel.com/legal/dpa
+- https://vercel.com/legal/privacy-notice
+- https://elevenlabs.io/privacy-policy
+- https://ollama.com/privacy
+- https://www.apple.com/legal/privacy/data/en/test-flight/
+- https://expo.dev/privacy
+- https://docs.expo.dev/eas-update/introduction/
+- https://fonts.google.com/faq
